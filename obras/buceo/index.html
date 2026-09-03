@@ -1,0 +1,3029 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seguimiento de obra</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1C1B1A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Seguimiento">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root{
+    --bg:#1C1B1A;
+    --surface:#242220;
+    --surface2:#2C2A26;
+    --surface3:#332F2A;
+    --line:#3A3733;
+    --cream:#F0EDE6;
+    --muted:#9C978D;
+    --copper:#C17A4E;
+    --blue:#5B84A8;
+    --green:#7FA06B;
+    --amber:#D9A24B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--cream);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+
+  header{
+    padding:28px 18px 20px;
+    border-bottom:1px solid var(--line);
+    background:
+      repeating-linear-gradient(0deg, rgba(240,237,230,0.02) 0px, rgba(240,237,230,0.02) 1px, transparent 1px, transparent 24px),
+      repeating-linear-gradient(90deg, rgba(240,237,230,0.02) 0px, rgba(240,237,230,0.02) 1px, transparent 1px, transparent 24px);
+  }
+  .eyebrow{
+    font-family:Georgia,'Times New Roman',serif;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    font-size:11px;
+    color:var(--muted);
+    margin:0 0 6px;
+  }
+  h1{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:26px;
+    font-weight:700;
+    margin:0 0 4px;
+    letter-spacing:0.01em;
+  }
+  .subtitle{
+    color:var(--muted);
+    font-size:13px;
+    margin:0;
+  }
+
+  .clients{
+    display:flex;
+    gap:10px;
+    margin-top:18px;
+  }
+  .client-chip{
+    flex:1;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px 12px;
+  }
+  .client-chip .dot{
+    display:inline-block;
+    width:8px;height:8px;
+    border-radius:50%;
+    margin-right:6px;
+  }
+  .client-chip.castro .dot{background:var(--copper);}
+  .client-chip.obra .dot{background:var(--blue);}
+  .client-chip .cname{
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:0.02em;
+  }
+  .client-chip .ctask{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  .rings{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    padding:18px;
+  }
+  .ring-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .ring-top{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .ring{
+    width:46px;height:46px;
+    border-radius:50%;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+  }
+  .ring::before{
+    content:'';
+    position:absolute;
+    inset:5px;
+    border-radius:50%;
+    background:var(--surface);
+  }
+  .ring span{
+    position:relative;
+    z-index:1;
+    font-family:ui-monospace,monospace;
+    font-size:11px;
+    font-weight:600;
+  }
+  .ring-info .rlabel{
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    margin-bottom:2px;
+    line-height:1.3;
+  }
+  .ring-info .rfrac{
+    font-family:ui-monospace,monospace;
+    font-size:12.5px;
+    color:var(--cream);
+  }
+  .ring-list{
+    font-size:10px;
+    color:var(--muted);
+    line-height:1.5;
+    padding-top:7px;
+    border-top:1px solid var(--line);
+    word-break:break-word;
+  }
+  .ring-list .code{
+    font-family:ui-monospace,monospace;
+    color:var(--cream);
+  }
+
+  /* SECTION LABEL */
+  .section-label{
+    padding:4px 18px 8px;
+    font-family:Georgia,serif;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:0.14em;
+    color:var(--muted);
+  }
+
+  /* META / ECONOMIC SECTION */
+  .meta-section{
+    padding:0 18px 6px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+  .meta-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px;
+  }
+  .meta-card-title{
+    font-family:Georgia,serif;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:4px;
+  }
+  .meta-card-sub{
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:10px;
+  }
+  .meta-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .meta-row label{
+    font-size:12.5px;
+    color:var(--cream);
+    flex:1;
+  }
+  .meta-input{
+    width:112px;
+    background:var(--surface2);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:7px 8px;
+    color:var(--cream);
+    font-size:13px;
+    text-align:right;
+    font-family:ui-monospace,monospace;
+  }
+  .meta-input:focus{outline:none;border-color:var(--muted);}
+  .meta-total{
+    margin-top:6px;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    font-weight:700;
+  }
+  .meta-total span:last-child{
+    color:var(--amber);
+    font-family:ui-monospace,monospace;
+    font-size:15px;
+  }
+
+  .meta-card.summary{border-color:var(--blue);}
+  .summary-line{
+    display:flex;
+    justify-content:space-between;
+    font-size:12.5px;
+    color:var(--cream);
+    margin-bottom:7px;
+  }
+  .summary-line span:last-child{
+    font-family:ui-monospace,monospace;
+    color:var(--muted);
+  }
+  .summary-total{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:15px;
+    font-weight:700;
+    padding-top:10px;
+    margin-top:4px;
+    border-top:1px solid var(--line);
+  }
+  .summary-total span:last-child{
+    color:var(--blue);
+    font-family:ui-monospace,monospace;
+  }
+  .summary-note{
+    font-size:10.5px;
+    color:var(--muted);
+    margin-top:10px;
+    line-height:1.4;
+  }
+  .print-btn{
+    width:100%;
+    margin-top:14px;
+    padding:12px;
+    border-radius:9px;
+    border:1px solid var(--blue);
+    background:rgba(91,132,168,0.15);
+    color:var(--cream);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .print-btn:active{background:rgba(91,132,168,0.28);}
+
+  .whatsapp-btn{
+    width:100%;
+    margin-top:6px;
+    padding:12px;
+    border-radius:9px;
+    border:1px solid var(--green);
+    background:rgba(127,160,107,0.15);
+    color:var(--cream);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .whatsapp-btn:active{background:rgba(127,160,107,0.28);}
+
+  .text-update-input{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    color:var(--cream);
+    font-size:13px;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    resize:vertical;
+    margin-bottom:10px;
+  }
+  .text-update-input::placeholder{color:#65615A;}
+  .text-update-input:focus{outline:none;border-color:var(--muted);}
+  .text-update-btn{
+    width:100%;
+    padding:12px;
+    border-radius:9px;
+    border:1px solid var(--amber);
+    background:rgba(217,162,75,0.15);
+    color:var(--cream);
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .text-update-btn:active{background:rgba(217,162,75,0.28);}
+  .text-update-btn:disabled{opacity:0.5;cursor:default;}
+  .text-update-status{
+    margin-top:9px;
+    font-size:11.5px;
+    color:var(--muted);
+    min-height:14px;
+  }
+
+  /* LEVEL SECTIONS */
+  .levels{padding:0 18px;}
+  .level{
+    border:1px solid var(--line);
+    border-radius:12px;
+    margin-bottom:12px;
+    overflow:hidden;
+    background:var(--surface);
+  }
+  .level-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:13px 14px;
+    cursor:pointer;
+    user-select:none;
+  }
+  .level-head:active{background:var(--surface2);}
+  .level-title{
+    font-family:Georgia,serif;
+    font-size:15px;
+    font-weight:700;
+    letter-spacing:0.02em;
+  }
+  .level-meta{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .level-bar-wrap{
+    width:54px;height:5px;
+    background:var(--surface2);
+    border-radius:3px;
+    overflow:hidden;
+  }
+  .level-bar-fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--copper),var(--blue));
+  }
+  .level-pct{
+    font-family:ui-monospace,monospace;
+    font-size:11px;
+    color:var(--muted);
+    min-width:30px;
+    text-align:right;
+  }
+  .chevron{
+    color:var(--muted);
+    font-size:12px;
+    transition:transform 0.2s;
+    margin-left:8px;
+  }
+  .level.collapsed .chevron{transform:rotate(-90deg);}
+  .level-body{
+    border-top:1px solid var(--line);
+  }
+  .level.collapsed .level-body{display:none;}
+
+  /* APARTMENT ROW */
+  .apto-row{
+    padding:14px;
+    border-bottom:1px solid var(--line);
+  }
+  .apto-row:last-child{border-bottom:none;}
+  .apto-top{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .apto-code{
+    font-family:ui-monospace,monospace;
+    font-size:14px;
+    font-weight:700;
+    color:var(--cream);
+    background:var(--surface2);
+    padding:2px 9px;
+    border-radius:5px;
+    border:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .apto-nota-input{
+    flex:1;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px 9px;
+    font-size:12px;
+    color:var(--cream);
+  }
+  .apto-nota-input::placeholder{color:#65615A;}
+  .apto-nota-input:focus{outline:none;border-color:var(--muted);}
+
+  .item-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  .item-card{
+    background:var(--surface2);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px;
+  }
+  .item-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:7px;
+    gap:6px;
+  }
+  .item-label{
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .item-card.castro .item-label{color:var(--copper);}
+  .item-card.obra .item-label{color:var(--blue);}
+
+  .toggle-btn{
+    font-family:ui-monospace,monospace;
+    font-size:10px;
+    font-weight:700;
+    padding:4px 8px;
+    border-radius:6px;
+    border:1px solid var(--line);
+    background:var(--surface3);
+    color:var(--muted);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .toggle-btn:active{transform:scale(0.96);}
+  .toggle-btn[data-state="terminado"]{
+    background:rgba(127,160,107,0.16);
+    border-color:var(--green);
+    color:var(--green);
+  }
+  .toggle-btn[data-state="pendiente"]{
+    background:var(--surface3);
+    border-color:var(--line);
+    color:var(--muted);
+  }
+
+  .item-input{
+    width:100%;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px 8px;
+    font-size:12px;
+    color:var(--cream);
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  .item-input::placeholder{color:#65615A;}
+  .item-input:focus{outline:none;border-color:var(--muted);}
+
+  footer{
+    padding:20px 18px 40px;
+    text-align:center;
+  }
+  .reset-btn{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--muted);
+    font-size:12px;
+    padding:9px 16px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .reset-btn:active{background:var(--surface2);}
+
+  .download-btn{
+    display:block;
+    width:calc(100% - 36px);
+    margin:0 auto 12px;
+    background:rgba(127,160,107,0.12);
+    border:1px solid var(--green);
+    color:var(--green);
+    font-size:13px;
+    font-weight:600;
+    padding:11px 16px;
+    border-radius:9px;
+    cursor:pointer;
+  }
+  .download-btn:active{background:rgba(127,160,107,0.24);}
+
+  .loading{
+    padding:40px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  /* PRINT REPORT (hidden on screen, shown only when printing) */
+  .print-report{display:none;}
+
+  @media print{
+    body{background:#fff;color:#000;}
+    body *{visibility:hidden;}
+    .print-report, .print-report *{visibility:visible;}
+    .print-report{
+      display:block;
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      padding:10px;
+    }
+    .print-report h1{
+      font-size:18px;
+      margin:0 0 6px;
+      font-family:Georgia,serif;
+    }
+    .print-report .meta-line{font-size:11px;margin-bottom:2px;color:#333;}
+    .print-report table{
+      width:100%;
+      border-collapse:collapse;
+      margin:14px 0;
+    }
+    .print-report th, .print-report td{
+      border:1px solid #999;
+      padding:6px 8px;
+      font-size:11px;
+      text-align:left;
+    }
+    .print-report th{background:#eee;}
+    .print-report .grand-total{
+      font-size:14px;
+      font-weight:bold;
+      text-align:right;
+      margin-top:6px;
+    }
+  }
+</style>
+</head>
+<body><script id="seedDataScript">window.__SEEDED_DATA__ = {"Nivel PB__001":{"nota":"No habilitado (oficina obra)","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"pendiente","cantidad":""}},"Nivel PB__002":{"nota":"Cocina faltante (fabricando)","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"pendiente","cantidad":""}},"Nivel PB__003":{"nota":"Entregado","cocina":{"estado":"terminado","obs":"Cambio de puerta por piso 1"},"piso":{"estado":"terminado","m2":"29.42"},"zocalos":{"estado":"terminado","ml":"25.62"},"puertas":{"estado":"terminado","cantidad":"3"}},"Nivel 1__101":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 1__102":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 1__103":{"nota":"Entregado","cocina":{"estado":"terminado","obs":""},"piso":{"estado":"terminado","m2":"20.94"},"zocalos":{"estado":"terminado","ml":"19.16"},"puertas":{"estado":"terminado","cantidad":"2"}},"Nivel 1__104":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 2__201":{"nota":"Prioridad a entregar ","cocina":{"estado":"terminado","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"terminado","ml":"53"},"puertas":{"estado":"terminado","cantidad":"6"}},"Nivel 2__202":{"nota":"Entregado","cocina":{"estado":"terminado","obs":""},"piso":{"estado":"terminado","m2":"20.64"},"zocalos":{"estado":"terminado","ml":"15.92"},"puertas":{"estado":"terminado","cantidad":"2"}},"Nivel 2__203":{"nota":"Prioridad a entregar","cocina":{"estado":"pendiente","obs":"Falta isla"},"piso":{"estado":"pendiente","m2":"21.6"},"zocalos":{"estado":"pendiente","ml":"17.9"},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 2__204":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 3__301":{"nota":"Prioridad a entregar","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"30.9"},"zocalos":{"estado":"pendiente","ml":"25.7"},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 3__302":{"nota":"Entregado","cocina":{"estado":"terminado","obs":""},"piso":{"estado":"terminado","m2":"20.64"},"zocalos":{"estado":"terminado","ml":"15.92"},"puertas":{"estado":"terminado","cantidad":"2"}},"Nivel 3__303":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"20.94"},"zocalos":{"estado":"pendiente","ml":"19.16"},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 3__304":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"29.42"},"zocalos":{"estado":"pendiente","ml":"25.62"},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 3__305":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"17.3"},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 4__401":{"nota":"Prioridad a entregar","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 4__402":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 4__403":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"21.6"},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 4__404":{"nota":"Prioridad a entregar","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"29.42"},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"3"}},"Nivel 4__405":{"nota":"Entregado","cocina":{"estado":"terminado","obs":""},"piso":{"estado":"terminado","m2":"17.3"},"zocalos":{"estado":"terminado","ml":"15.64"},"puertas":{"estado":"terminado","cantidad":"2"}},"Nivel 5__501":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"51"},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel 5__502":{"nota":"Prioridad a entregar","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"terminado","m2":"21.6"},"zocalos":{"estado":"terminado","ml":"17.9"},"puertas":{"estado":"terminado","cantidad":"2"}},"Nivel 5__503":{"nota":"Pendiente","cocina":{"estado":"pendiente","obs":"isla"},"piso":{"estado":"terminado","m2":"29.42"},"zocalos":{"estado":"terminado","ml":"25.62"},"puertas":{"estado":"terminado","cantidad":"1"}},"Nivel Azotea__Barbacoa":{"nota":"Está en 0 por obra","cocina":{"estado":"pendiente","obs":""},"piso":{"estado":"pendiente","m2":""},"zocalos":{"estado":"pendiente","ml":""},"puertas":{"estado":"pendiente","cantidad":""}},"__meta":{"jornales":"31","valorJornal":"2500","precioM2":"250","precioMl":"160","precioPuerta":"1850","whatsappNumber":""}};</script>
+<a href="../../index.html" id="rhr-portal-back-link" style="position:fixed;top:10px;left:10px;z-index:2147483647;background:#14181f;color:#fff;font:600 12px/1 -apple-system,system-ui,sans-serif;padding:8px 13px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.3);opacity:.82">&larr; Portal RHR</a>
+
+
+<header>
+  <p class="eyebrow">Obra · Instalación</p>
+  <h1>Seguimiento de obra</h1>
+  <p class="subtitle">Tocá el botón para cambiar el estado</p>
+  <div class="clients">
+    <div class="client-chip castro">
+      <div><span class="dot"></span><span class="cname">Castro</span></div>
+      <div class="ctask">Instalación de cocinas</div>
+    </div>
+    <div class="client-chip obra">
+      <div><span class="dot"></span><span class="cname">Obra</span></div>
+      <div class="ctask">Pisos, zócalos y puertas</div>
+    </div>
+  </div>
+</header>
+
+<div class="rings" id="rings">
+    <div class="ring-card">
+      <div class="ring-top">
+        <div class="ring" style="background:conic-gradient(var(--copper) 86.4deg, var(--surface2) 86.4deg)"><span>24%</span></div>
+        <div class="ring-info">
+          <div class="rlabel">Castro · Cocinas</div>
+          <div class="rfrac">6 / 25</div>
+        </div>
+      </div>
+      <div class="ring-list"><span class="code">003</span>, <span class="code">103</span>, <span class="code">201</span>, <span class="code">202</span>, <span class="code">302</span>, <span class="code">405</span></div>
+    </div>
+  
+    <div class="ring-card">
+      <div class="ring-top">
+        <div class="ring" style="background:conic-gradient(var(--blue) 201.6deg, var(--surface2) 201.6deg)"><span>56%</span></div>
+        <div class="ring-info">
+          <div class="rlabel">Obra · Piso</div>
+          <div class="rfrac">14 / 25</div>
+        </div>
+      </div>
+      <div class="ring-list"><span class="code">003</span>, <span class="code">103</span>, <span class="code">202</span>, <span class="code">301</span>, <span class="code">302</span>, <span class="code">303</span>, <span class="code">304</span>, <span class="code">305</span>, <span class="code">403</span>, <span class="code">404</span>, <span class="code">405</span>, <span class="code">501</span>, <span class="code">502</span>, <span class="code">503</span></div>
+    </div>
+  
+    <div class="ring-card">
+      <div class="ring-top">
+        <div class="ring" style="background:conic-gradient(var(--blue) 115.2deg, var(--surface2) 115.2deg)"><span>32%</span></div>
+        <div class="ring-info">
+          <div class="rlabel">Obra · Zócalos</div>
+          <div class="rfrac">8 / 25</div>
+        </div>
+      </div>
+      <div class="ring-list"><span class="code">003</span>, <span class="code">103</span>, <span class="code">201</span>, <span class="code">202</span>, <span class="code">302</span>, <span class="code">405</span>, <span class="code">502</span>, <span class="code">503</span></div>
+    </div>
+  
+    <div class="ring-card">
+      <div class="ring-top">
+        <div class="ring" style="background:conic-gradient(var(--blue) 316.8deg, var(--surface2) 316.8deg)"><span>88%</span></div>
+        <div class="ring-info">
+          <div class="rlabel">Obra · Puertas</div>
+          <div class="rfrac">22 / 25</div>
+        </div>
+      </div>
+      <div class="ring-list"><span class="code">003</span>, <span class="code">101</span>, <span class="code">102</span>, <span class="code">103</span>, <span class="code">104</span>, <span class="code">201</span>, <span class="code">202</span>, <span class="code">203</span>, <span class="code">204</span>, <span class="code">301</span>, <span class="code">302</span>, <span class="code">303</span>, <span class="code">304</span>, <span class="code">305</span>, <span class="code">401</span>, <span class="code">402</span>, <span class="code">403</span>, <span class="code">404</span>, <span class="code">405</span>, <span class="code">501</span>, <span class="code">502</span>, <span class="code">503</span></div>
+    </div>
+  </div>
+
+<p class="section-label">Datos económicos</p>
+<div class="meta-section" id="metaSection">
+    <div class="meta-card">
+      <div class="meta-card-title">Jornales del trabajador</div>
+      <div class="meta-card-sub">Uso interno · no se incluye en el informe para Obra</div>
+      <div class="meta-row">
+        <label>Jornales trabajados</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="jornales" value="31" placeholder="0">
+      </div>
+      <div class="meta-row">
+        <label>Valor por jornal</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="valorJornal" value="2500" placeholder="$">
+      </div>
+      <div class="meta-total"><span>Total pagado</span><span id="jornalesTotal">$ 77.500</span></div>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Precios unitarios · Obra</div>
+      <div class="meta-card-sub">Se usan para calcular lo que hay que cobrar</div>
+      <div class="meta-row">
+        <label>Precio m² de piso</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="precioM2" value="250" placeholder="$">
+      </div>
+      <div class="meta-row">
+        <label>Precio metro lineal zócalo</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="precioMl" value="160" placeholder="$">
+      </div>
+      <div class="meta-row">
+        <label>Precio por puerta</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="precioPuerta" value="1850" placeholder="$">
+      </div>
+    </div>
+
+    <div class="meta-card summary">
+      <div class="meta-card-title">Resumen a cobrar · Obra</div>
+      <div class="summary-line"><span>Piso — <span id="sumPisoQty">360.5400000000001 m²</span></span><span id="sumPisoSub">$ 90.135</span></div>
+      <div class="summary-line"><span>Zócalos — <span id="sumZocQty">188.78 ml</span></span><span id="sumZocSub">$ 30.204,8</span></div>
+      <div class="summary-line"><span>Puertas — <span id="sumPuertasQty">36 un.</span></span><span id="sumPuertasSub">$ 66.600</span></div>
+      <div class="summary-total"><span>Total</span><span id="sumGrandTotal">$ 186.939,8</span></div>
+      <div class="summary-note">Sólo se contabilizan las tareas marcadas como Terminado.</div>
+      <button class="print-btn" id="printBtn">🖨️ Imprimir informe para Obra</button>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Enviar notas por WhatsApp</div>
+      <div class="meta-card-sub">Arma un mensaje con las notas de cada apartamento, agrupadas por nivel</div>
+      <div class="meta-row">
+        <label>Número de WhatsApp</label>
+        <input class="meta-input" type="tel" inputmode="tel" data-meta="whatsappNumber" value="" placeholder="+598...">
+      </div>
+      <button class="whatsapp-btn" id="whatsappBtn">📲 Enviar notas por WhatsApp</button>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Exportar avance completo</div>
+      <div class="meta-card-sub">Manda por WhatsApp el estado de todos los apartamentos, listo para que alguien lo edite y te lo devuelva</div>
+      <button class="whatsapp-btn" id="exportProgressBtn">📤 Exportar avance para WhatsApp</button>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Actualizar por texto</div>
+      <div class="meta-card-sub">Pegá el mensaje editado (o escribí una novedad con ese mismo formato) y se aplica solo, sin necesitar conexión</div>
+      <textarea class="text-update-input" id="textUpdateInput" rows="7" placeholder="Nivel PB
+201 (entregado)
+Cocina (hacer puerta de bajo) terminado
+Piso (20) terminado
+Zocalo (20) terminado
+Puertas (3) terminado"></textarea>
+      <button class="text-update-btn" id="textUpdateBtn">🪄 Actualizar seguimiento</button>
+      <div class="text-update-status" id="textUpdateStatus"></div>
+    </div>
+  </div>
+
+<p class="section-label">Apartamentos</p>
+<div class="levels" id="levels">
+      <div class="level " data-level="Nivel PB">
+        <div class="level-head" data-toggle="Nivel PB">
+          <span class="level-title">Nivel PB</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:33%"></div></div>
+            <span class="level-pct">33%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">001</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="No habilitado (oficina obra)" data-nivel="Nivel PB" data-apto="001">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="001" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel PB" data-apto="001" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="001" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel PB" data-apto="001" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="001" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel PB" data-apto="001" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="001" data-key="puertas">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="" data-nivel="Nivel PB" data-apto="001" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">002</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Cocina faltante (fabricando)" data-nivel="Nivel PB" data-apto="002">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="002" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel PB" data-apto="002" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="002" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel PB" data-apto="002" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="002" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel PB" data-apto="002" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel PB" data-apto="002" data-key="puertas">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="" data-nivel="Nivel PB" data-apto="002" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">003</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Entregado" data-nivel="Nivel PB" data-apto="003">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel PB" data-apto="003" data-key="cocina">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="Cambio de puerta por piso 1" data-nivel="Nivel PB" data-apto="003" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel PB" data-apto="003" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="29.42" data-nivel="Nivel PB" data-apto="003" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel PB" data-apto="003" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="25.62" data-nivel="Nivel PB" data-apto="003" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel PB" data-apto="003" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="3" data-nivel="Nivel PB" data-apto="003" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      </div>
+      </div>
+    
+      <div class="level " data-level="Nivel 1">
+        <div class="level-head" data-toggle="Nivel 1">
+          <span class="level-title">Nivel 1</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:44%"></div></div>
+            <span class="level-pct">44%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">101</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 1" data-apto="101">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="101" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 1" data-apto="101" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="101" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel 1" data-apto="101" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="101" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 1" data-apto="101" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 1" data-apto="101" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 1" data-apto="101" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">102</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 1" data-apto="102">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="102" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 1" data-apto="102" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="102" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel 1" data-apto="102" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="102" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 1" data-apto="102" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 1" data-apto="102" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 1" data-apto="102" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">103</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Entregado" data-nivel="Nivel 1" data-apto="103">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 1" data-apto="103" data-key="cocina">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 1" data-apto="103" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 1" data-apto="103" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="20.94" data-nivel="Nivel 1" data-apto="103" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 1" data-apto="103" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="19.16" data-nivel="Nivel 1" data-apto="103" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 1" data-apto="103" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="2" data-nivel="Nivel 1" data-apto="103" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">104</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 1" data-apto="104">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="104" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 1" data-apto="104" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="104" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel 1" data-apto="104" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 1" data-apto="104" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 1" data-apto="104" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 1" data-apto="104" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 1" data-apto="104" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      </div>
+      </div>
+    
+      <div class="level " data-level="Nivel 2">
+        <div class="level-head" data-toggle="Nivel 2">
+          <span class="level-title">Nivel 2</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:56%"></div></div>
+            <span class="level-pct">56%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">201</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Prioridad a entregar " data-nivel="Nivel 2" data-apto="201">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="201" data-key="cocina">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 2" data-apto="201" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 2" data-apto="201" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel 2" data-apto="201" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="201" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="53" data-nivel="Nivel 2" data-apto="201" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="201" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="6" data-nivel="Nivel 2" data-apto="201" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">202</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Entregado" data-nivel="Nivel 2" data-apto="202">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="202" data-key="cocina">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 2" data-apto="202" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="202" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="20.64" data-nivel="Nivel 2" data-apto="202" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="202" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="15.92" data-nivel="Nivel 2" data-apto="202" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="202" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="2" data-nivel="Nivel 2" data-apto="202" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">203</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Prioridad a entregar" data-nivel="Nivel 2" data-apto="203">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 2" data-apto="203" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="Falta isla" data-nivel="Nivel 2" data-apto="203" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 2" data-apto="203" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="21.6" data-nivel="Nivel 2" data-apto="203" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 2" data-apto="203" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="17.9" data-nivel="Nivel 2" data-apto="203" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="203" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 2" data-apto="203" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">204</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 2" data-apto="204">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 2" data-apto="204" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 2" data-apto="204" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 2" data-apto="204" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel 2" data-apto="204" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 2" data-apto="204" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 2" data-apto="204" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 2" data-apto="204" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 2" data-apto="204" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      </div>
+      </div>
+    
+      <div class="level " data-level="Nivel 3">
+        <div class="level-head" data-toggle="Nivel 3">
+          <span class="level-title">Nivel 3</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:60%"></div></div>
+            <span class="level-pct">60%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">301</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Prioridad a entregar" data-nivel="Nivel 3" data-apto="301">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="301" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 3" data-apto="301" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="301" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="30.9" data-nivel="Nivel 3" data-apto="301" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="301" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="25.7" data-nivel="Nivel 3" data-apto="301" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="301" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 3" data-apto="301" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">302</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Entregado" data-nivel="Nivel 3" data-apto="302">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="302" data-key="cocina">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 3" data-apto="302" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="302" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="20.64" data-nivel="Nivel 3" data-apto="302" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="302" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="15.92" data-nivel="Nivel 3" data-apto="302" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="302" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="2" data-nivel="Nivel 3" data-apto="302" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">303</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 3" data-apto="303">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="303" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 3" data-apto="303" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="303" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="20.94" data-nivel="Nivel 3" data-apto="303" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="303" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="19.16" data-nivel="Nivel 3" data-apto="303" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="303" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 3" data-apto="303" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">304</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 3" data-apto="304">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="304" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 3" data-apto="304" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="304" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="29.42" data-nivel="Nivel 3" data-apto="304" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="304" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="25.62" data-nivel="Nivel 3" data-apto="304" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="304" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 3" data-apto="304" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">305</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 3" data-apto="305">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="305" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 3" data-apto="305" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="305" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="17.3" data-nivel="Nivel 3" data-apto="305" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 3" data-apto="305" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 3" data-apto="305" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 3" data-apto="305" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 3" data-apto="305" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      </div>
+      </div>
+    
+      <div class="level " data-level="Nivel 4">
+        <div class="level-head" data-toggle="Nivel 4">
+          <span class="level-title">Nivel 4</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:50%"></div></div>
+            <span class="level-pct">50%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">401</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Prioridad a entregar" data-nivel="Nivel 4" data-apto="401">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="401" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 4" data-apto="401" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="401" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel 4" data-apto="401" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="401" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 4" data-apto="401" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="401" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 4" data-apto="401" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">402</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 4" data-apto="402">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="402" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 4" data-apto="402" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="402" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel 4" data-apto="402" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="402" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 4" data-apto="402" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="402" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 4" data-apto="402" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">403</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 4" data-apto="403">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="403" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 4" data-apto="403" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="403" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="21.6" data-nivel="Nivel 4" data-apto="403" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="403" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 4" data-apto="403" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="403" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 4" data-apto="403" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">404</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Prioridad a entregar" data-nivel="Nivel 4" data-apto="404">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="404" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 4" data-apto="404" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="404" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="29.42" data-nivel="Nivel 4" data-apto="404" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 4" data-apto="404" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 4" data-apto="404" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="404" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="3" data-nivel="Nivel 4" data-apto="404" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">405</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Entregado" data-nivel="Nivel 4" data-apto="405">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="405" data-key="cocina">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 4" data-apto="405" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="405" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="17.3" data-nivel="Nivel 4" data-apto="405" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="405" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="15.64" data-nivel="Nivel 4" data-apto="405" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 4" data-apto="405" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="2" data-nivel="Nivel 4" data-apto="405" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      </div>
+      </div>
+    
+      <div class="level " data-level="Nivel 5">
+        <div class="level-head" data-toggle="Nivel 5">
+          <span class="level-title">Nivel 5</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:67%"></div></div>
+            <span class="level-pct">67%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">501</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 5" data-apto="501">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 5" data-apto="501" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 5" data-apto="501" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="501" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="51" data-nivel="Nivel 5" data-apto="501" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 5" data-apto="501" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel 5" data-apto="501" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="501" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 5" data-apto="501" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">502</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Prioridad a entregar" data-nivel="Nivel 5" data-apto="502">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 5" data-apto="502" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel 5" data-apto="502" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="502" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="21.6" data-nivel="Nivel 5" data-apto="502" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="502" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="17.9" data-nivel="Nivel 5" data-apto="502" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="502" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="2" data-nivel="Nivel 5" data-apto="502" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">503</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Pendiente" data-nivel="Nivel 5" data-apto="503">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel 5" data-apto="503" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="isla" data-nivel="Nivel 5" data-apto="503" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="503" data-key="piso">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="29.42" data-nivel="Nivel 5" data-apto="503" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="503" data-key="zocalos">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="25.62" data-nivel="Nivel 5" data-apto="503" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="terminado" data-nivel="Nivel 5" data-apto="503" data-key="puertas">
+          Terminado
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="1" data-nivel="Nivel 5" data-apto="503" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      </div>
+      </div>
+    
+      <div class="level " data-level="Nivel Azotea">
+        <div class="level-head" data-toggle="Nivel Azotea">
+          <span class="level-title">Nivel Azotea</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:0%"></div></div>
+            <span class="level-pct">0%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">Barbacoa</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="Está en 0 por obra" data-nivel="Nivel Azotea" data-apto="Barbacoa">
+          </div>
+          <div class="item-grid">
+            
+    <div class="item-card castro">
+      <div class="item-head">
+        <span class="item-label">Cocina</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="cocina">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="text" placeholder="Observación" value="" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="cocina" data-field="obs">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Piso</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="piso">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m²" value="" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="piso" data-field="m2">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Zócalos</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="zocalos">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="m lineales" value="" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="zocalos" data-field="ml">
+    </div>
+  
+    <div class="item-card obra">
+      <div class="item-head">
+        <span class="item-label">Puertas</span>
+        <button class="toggle-btn" data-state="pendiente" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="puertas">
+          Pendiente
+        </button>
+      </div>
+      <input class="item-input" type="number" inputmode="decimal" placeholder="cant. puertas" value="" data-nivel="Nivel Azotea" data-apto="Barbacoa" data-key="puertas" data-field="cantidad">
+    </div>
+  
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+
+<footer>
+  <button class="download-btn" id="downloadBtn">💾 Descargar copia en HTML</button>
+  <button class="reset-btn" id="resetBtn">Reiniciar todo el seguimiento</button>
+</footer>
+
+<div class="print-report" id="printReport">
+    <h1>Informe de obra — Pisos, Zócalos y Puertas</h1>
+    <div class="meta-line">Emitido por: Ruben Hernandez Rodriguez — RUT 219700170018</div>
+    <div class="meta-line">Cliente: Obra</div>
+    <div class="meta-line">Fecha: 16/8/2026</div>
+
+    <table>
+      <thead><tr><th>Nivel</th><th>Apto</th><th>Piso</th><th>Zócalos</th><th>Puertas</th></tr></thead>
+      <tbody><tr>
+        <td>Nivel PB</td>
+        <td>003</td>
+        <td>29.42 m²</td>
+        <td>25.62 ml</td>
+        <td>3</td>
+      </tr><tr>
+        <td>Nivel 1</td>
+        <td>101</td>
+        <td>—</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 1</td>
+        <td>102</td>
+        <td>—</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 1</td>
+        <td>103</td>
+        <td>20.94 m²</td>
+        <td>19.16 ml</td>
+        <td>2</td>
+      </tr><tr>
+        <td>Nivel 1</td>
+        <td>104</td>
+        <td>—</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 2</td>
+        <td>201</td>
+        <td>—</td>
+        <td>53 ml</td>
+        <td>6</td>
+      </tr><tr>
+        <td>Nivel 2</td>
+        <td>202</td>
+        <td>20.64 m²</td>
+        <td>15.92 ml</td>
+        <td>2</td>
+      </tr><tr>
+        <td>Nivel 2</td>
+        <td>203</td>
+        <td>—</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 2</td>
+        <td>204</td>
+        <td>—</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 3</td>
+        <td>301</td>
+        <td>30.9 m²</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 3</td>
+        <td>302</td>
+        <td>20.64 m²</td>
+        <td>15.92 ml</td>
+        <td>2</td>
+      </tr><tr>
+        <td>Nivel 3</td>
+        <td>303</td>
+        <td>20.94 m²</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 3</td>
+        <td>304</td>
+        <td>29.42 m²</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 3</td>
+        <td>305</td>
+        <td>17.3 m²</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 4</td>
+        <td>401</td>
+        <td>—</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 4</td>
+        <td>402</td>
+        <td>—</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 4</td>
+        <td>403</td>
+        <td>21.6 m²</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 4</td>
+        <td>404</td>
+        <td>29.42 m²</td>
+        <td>—</td>
+        <td>3</td>
+      </tr><tr>
+        <td>Nivel 4</td>
+        <td>405</td>
+        <td>17.3 m²</td>
+        <td>15.64 ml</td>
+        <td>2</td>
+      </tr><tr>
+        <td>Nivel 5</td>
+        <td>501</td>
+        <td>51 m²</td>
+        <td>—</td>
+        <td>1</td>
+      </tr><tr>
+        <td>Nivel 5</td>
+        <td>502</td>
+        <td>21.6 m²</td>
+        <td>17.9 ml</td>
+        <td>2</td>
+      </tr><tr>
+        <td>Nivel 5</td>
+        <td>503</td>
+        <td>29.42 m²</td>
+        <td>25.62 ml</td>
+        <td>1</td>
+      </tr></tbody>
+    </table>
+
+    <table>
+      <thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr></thead>
+      <tbody>
+        <tr><td>Piso</td><td>360.5400000000001 m²</td><td>$ 250</td><td>$ 90.135</td></tr>
+        <tr><td>Zócalos</td><td>188.78 ml</td><td>$ 160</td><td>$ 30.204,8</td></tr>
+        <tr><td>Puertas</td><td>36 un.</td><td>$ 1.850</td><td>$ 66.600</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grand-total">TOTAL A COBRAR: $ 186.939,8</div>
+  </div>
+
+<script>
+  // Promesa que se resuelve cuando el módulo de Firebase termina de inicializar
+  window.__firebaseReady = new Promise((resolve) => { window.__firebaseReadyResolve = resolve; });
+</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyA3eyoWxmJSfKa9BmDqNyEg1ZzoGOCoo6I",
+    authDomain: "obra-buceo-pindo.firebaseapp.com",
+    projectId: "obra-buceo-pindo",
+    storageBucket: "obra-buceo-pindo.firebasestorage.app",
+    messagingSenderId: "578543430584",
+    appId: "1:578543430584:web:ce4f3fe0b75e9c466cfd4d"
+  };
+
+  try{
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    // Un único documento compartido por todos los dispositivos que abran esta obra
+    const docRef = doc(db, "seguimiento", "obra-buceo-pindo");
+
+    window.firebaseSync = {
+      async getData(){
+        try{
+          const snap = await getDoc(docRef);
+          if(snap.exists() && snap.data().json){
+            return JSON.parse(snap.data().json);
+          }
+        }catch(e){ console.error("Firestore getData error", e); }
+        return null;
+      },
+      async setData(dataObj){
+        try{
+          await setDoc(docRef, { json: JSON.stringify(dataObj), updatedAt: serverTimestamp() });
+        }catch(e){ console.error("Firestore setData error", e); }
+      },
+      subscribe(callback){
+        return onSnapshot(docRef, (snap) => {
+          if(snap.exists() && snap.data().json){
+            try{ callback(JSON.parse(snap.data().json)); }
+            catch(e){ console.error("Firestore parse error", e); }
+          }
+        }, (err) => console.error("Firestore subscribe error", err));
+      }
+    };
+  }catch(e){
+    console.error("No se pudo inicializar Firebase, se usará solo almacenamiento local", e);
+    window.firebaseSync = null;
+  }
+  window.__firebaseReadyResolve();
+</script>
+<script>
+const LEVELS = [
+  { nombre: "Nivel PB", aptos: ["001","002","003"] },
+  { nombre: "Nivel 1", aptos: ["101","102","103","104"] },
+  { nombre: "Nivel 2", aptos: ["201","202","203","204"] },
+  { nombre: "Nivel 3", aptos: ["301","302","303","304","305"] },
+  { nombre: "Nivel 4", aptos: ["401","402","403","404","405"] },
+  { nombre: "Nivel 5", aptos: ["501","502","503"] },
+  { nombre: "Nivel Azotea", aptos: ["Barbacoa"] },
+];
+
+// definición de cada tarea: key, cliente, etiqueta, campo de dato, tipo de input, placeholder
+const ITEMS = [
+  { key:"cocina",  cliente:"castro", label:"Cocina",  field:"obs",      type:"text",   placeholder:"Observación" },
+  { key:"piso",    cliente:"obra",   label:"Piso",    field:"m2",       type:"number", placeholder:"m²" },
+  { key:"zocalos", cliente:"obra",   label:"Zócalos", field:"ml",       type:"number", placeholder:"m lineales" },
+  { key:"puertas", cliente:"obra",   label:"Puertas", field:"cantidad", type:"number", placeholder:"cant. puertas" },
+];
+
+const STORAGE_KEY = "obra-castro-tracking-v3";
+
+// índice apto -> id, para poder ubicar un apartamento por su número aunque el nivel escrito no coincida exactamente
+const APTO_INDEX = {};
+LEVELS.forEach(lvl => lvl.aptos.forEach(a => { APTO_INDEX[a] = aptoId(lvl.nombre, a); }));
+
+function aptoId(nivel, apto){ return nivel + "__" + apto; }
+
+function defaultAptoData(){
+  const d = { nota:"" };
+  ITEMS.forEach(it => {
+    d[it.key] = { estado: "pendiente", [it.field]: "" };
+  });
+  return d;
+}
+
+function defaultMeta(){
+  return { jornales:"", valorJornal:"", precioM2:"", precioMl:"", precioPuerta:"", whatsappNumber:"" };
+}
+
+let DATA = {};
+let collapsedLevels = {};
+let saveTimeout = null;
+
+let pendingRemoteRender = false;
+let applyingRemote = false;
+
+function normalizeData(){
+  LEVELS.forEach(lvl => {
+    lvl.aptos.forEach(a => {
+      const id = aptoId(lvl.nombre, a);
+      if(!DATA[id]) DATA[id] = defaultAptoData();
+      if(DATA[id].nota === undefined) DATA[id].nota = "";
+      ITEMS.forEach(it => {
+        if(!DATA[id][it.key]) DATA[id][it.key] = { estado:"pendiente", [it.field]:"" };
+      });
+    });
+  });
+  if(!DATA.__meta) DATA.__meta = defaultMeta();
+  else DATA.__meta = Object.assign(defaultMeta(), DATA.__meta);
+}
+
+// Se llama cuando llega una actualización de OTRO dispositivo por Firestore
+function applyRemoteData(remoteData){
+  if(!remoteData) return;
+  const incoming = JSON.stringify(remoteData);
+  if(incoming === JSON.stringify(DATA)) return; // sin cambios reales
+  applyingRemote = true;
+  DATA = remoteData;
+  normalizeData();
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }catch(e){}
+  applyingRemote = false;
+
+  const active = document.activeElement;
+  const isEditing = active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA");
+  if(isEditing){
+    // No pisar lo que se está tipeando ahora mismo; se aplica al perder el foco
+    pendingRemoteRender = true;
+  } else {
+    renderAll();
+  }
+}
+
+function applyPendingRemoteRenderIfAny(){
+  if(pendingRemoteRender){
+    pendingRemoteRender = false;
+    renderAll();
+  }
+}
+
+async function loadData(){
+  let cloudData = null;
+  try{
+    if(window.__firebaseReady) await window.__firebaseReady;
+    if(window.firebaseSync){
+      cloudData = await window.firebaseSync.getData();
+    }
+  }catch(e){ console.error("Error leyendo Firestore", e); }
+
+  if(cloudData){
+    DATA = cloudData;
+  } else {
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        DATA = JSON.parse(raw);
+      } else if(window.__SEEDED_DATA__){
+        // Primera vez en cualquier dispositivo: partir de los datos incrustados en el archivo,
+        // y subirlos a la nube para que sea el punto de partida compartido.
+        DATA = window.__SEEDED_DATA__;
+      } else {
+        throw new Error("no data");
+      }
+    }catch(e){
+      DATA = window.__SEEDED_DATA__ || {};
+    }
+  }
+
+  normalizeData();
+
+  if(!cloudData && window.firebaseSync){
+    // Sembramos la nube con los datos iniciales para que el otro dispositivo los reciba
+    window.firebaseSync.setData(DATA);
+  }
+
+  if(window.firebaseSync){
+    window.firebaseSync.subscribe((remoteData) => applyRemoteData(remoteData));
+  }
+}
+
+function saveDataDebounced(){
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => {
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+    }catch(e){
+      console.error("Error guardando", e);
+    }
+    if(window.firebaseSync) window.firebaseSync.setData(DATA);
+  }, 400);
+}
+
+async function saveDataNow(){
+  clearTimeout(saveTimeout);
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA));
+  }catch(e){
+    console.error("Error guardando", e);
+  }
+  if(window.firebaseSync) await window.firebaseSync.setData(DATA);
+}
+
+function formatMoney(n){
+  if(!n || isNaN(n)) n = 0;
+  return "$ " + Number(n).toLocaleString("es-UY", { maximumFractionDigits: 2 });
+}
+
+function escapeAttr(str){
+  return String(str).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+}
+
+/* ---------- CÁLCULOS ---------- */
+
+function computeStats(){
+  let castroDone=0, castroTotal=0;
+  let pisoDone=0, pisoTotal=0;
+  let zocDone=0, zocTotal=0;
+  let puertasDone=0, puertasTotal=0;
+  const castroAptos=[], pisoAptos=[], zocAptos=[], puertasAptos=[];
+  LEVELS.forEach(lvl => lvl.aptos.forEach(a => {
+    const d = DATA[aptoId(lvl.nombre,a)];
+    castroTotal++;   if(d.cocina.estado === "terminado"){ castroDone++; castroAptos.push(a); }
+    pisoTotal++;     if(d.piso.estado === "terminado"){ pisoDone++; pisoAptos.push(a); }
+    zocTotal++;      if(d.zocalos.estado === "terminado"){ zocDone++; zocAptos.push(a); }
+    puertasTotal++;  if(d.puertas.estado === "terminado"){ puertasDone++; puertasAptos.push(a); }
+  }));
+  return { castroDone, castroTotal, pisoDone, pisoTotal, zocDone, zocTotal, puertasDone, puertasTotal,
+           castroAptos, pisoAptos, zocAptos, puertasAptos };
+}
+
+function computeLevelPct(lvl){
+  let done=0, total=0;
+  lvl.aptos.forEach(a=>{
+    const d = DATA[aptoId(lvl.nombre,a)];
+    ITEMS.forEach(it => { total++; if(d[it.key].estado === "terminado") done++; });
+  });
+  return total===0 ? 0 : Math.round((done/total)*100);
+}
+
+function computeMoneyTotals(){
+  const meta = DATA.__meta;
+  let totalM2=0, totalMl=0, totalPuertas=0;
+  LEVELS.forEach(lvl => lvl.aptos.forEach(a => {
+    const d = DATA[aptoId(lvl.nombre,a)];
+    if(d.piso.estado === "terminado") totalM2 += parseFloat(d.piso.m2) || 0;
+    if(d.zocalos.estado === "terminado") totalMl += parseFloat(d.zocalos.ml) || 0;
+    if(d.puertas.estado === "terminado") totalPuertas += parseFloat(d.puertas.cantidad) || 0;
+  }));
+  const precioM2 = parseFloat(meta.precioM2) || 0;
+  const precioMl = parseFloat(meta.precioMl) || 0;
+  const precioPuerta = parseFloat(meta.precioPuerta) || 0;
+  const subPiso = totalM2 * precioM2;
+  const subZocalos = totalMl * precioMl;
+  const subPuertas = totalPuertas * precioPuerta;
+  const totalObra = subPiso + subZocalos + subPuertas;
+  return { totalM2, totalMl, totalPuertas, precioM2, precioMl, precioPuerta, subPiso, subZocalos, subPuertas, totalObra };
+}
+
+function computeJornalesTotal(){
+  const meta = DATA.__meta;
+  return (parseFloat(meta.jornales)||0) * (parseFloat(meta.valorJornal)||0);
+}
+
+/* ---------- RENDER ---------- */
+
+function ringGradient(pct, color){
+  return `conic-gradient(${color} ${pct*3.6}deg, var(--surface2) ${pct*3.6}deg)`;
+}
+
+function renderRings(){
+  const s = computeStats();
+  const castroPct = s.castroTotal===0?0:Math.round((s.castroDone/s.castroTotal)*100);
+  const pisoPct = s.pisoTotal===0?0:Math.round((s.pisoDone/s.pisoTotal)*100);
+  const zocPct = s.zocTotal===0?0:Math.round((s.zocDone/s.zocTotal)*100);
+  const puertasPct = s.puertasTotal===0?0:Math.round((s.puertasDone/s.puertasTotal)*100);
+
+  const aptosList = (codes) => codes.length === 0
+    ? `<span style="opacity:0.6;">Ninguno todavía</span>`
+    : codes.map(c => `<span class="code">${c}</span>`).join(", ");
+
+  const ring = (pct, color, label, frac, codes) => `
+    <div class="ring-card">
+      <div class="ring-top">
+        <div class="ring" style="background:${ringGradient(pct,color)}"><span>${pct}%</span></div>
+        <div class="ring-info">
+          <div class="rlabel">${label}</div>
+          <div class="rfrac">${frac}</div>
+        </div>
+      </div>
+      <div class="ring-list">${aptosList(codes)}</div>
+    </div>
+  `;
+
+  document.getElementById("rings").innerHTML =
+    ring(castroPct, "var(--copper)", "Castro · Cocinas", `${s.castroDone} / ${s.castroTotal}`, s.castroAptos) +
+    ring(pisoPct, "var(--blue)", "Obra · Piso", `${s.pisoDone} / ${s.pisoTotal}`, s.pisoAptos) +
+    ring(zocPct, "var(--blue)", "Obra · Zócalos", `${s.zocDone} / ${s.zocTotal}`, s.zocAptos) +
+    ring(puertasPct, "var(--blue)", "Obra · Puertas", `${s.puertasDone} / ${s.puertasTotal}`, s.puertasAptos);
+}
+
+function renderMetaSection(){
+  const meta = DATA.__meta;
+  const jornalesTotal = computeJornalesTotal();
+  const m = computeMoneyTotals();
+
+  document.getElementById("metaSection").innerHTML = `
+    <div class="meta-card">
+      <div class="meta-card-title">Jornales del trabajador</div>
+      <div class="meta-card-sub">Uso interno · no se incluye en el informe para Obra</div>
+      <div class="meta-row">
+        <label>Jornales trabajados</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="jornales" value="${escapeAttr(meta.jornales)}" placeholder="0">
+      </div>
+      <div class="meta-row">
+        <label>Valor por jornal</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="valorJornal" value="${escapeAttr(meta.valorJornal)}" placeholder="$">
+      </div>
+      <div class="meta-total"><span>Total pagado</span><span id="jornalesTotal">${formatMoney(jornalesTotal)}</span></div>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Precios unitarios · Obra</div>
+      <div class="meta-card-sub">Se usan para calcular lo que hay que cobrar</div>
+      <div class="meta-row">
+        <label>Precio m² de piso</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="precioM2" value="${escapeAttr(meta.precioM2)}" placeholder="$">
+      </div>
+      <div class="meta-row">
+        <label>Precio metro lineal zócalo</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="precioMl" value="${escapeAttr(meta.precioMl)}" placeholder="$">
+      </div>
+      <div class="meta-row">
+        <label>Precio por puerta</label>
+        <input class="meta-input" type="number" inputmode="decimal" data-meta="precioPuerta" value="${escapeAttr(meta.precioPuerta)}" placeholder="$">
+      </div>
+    </div>
+
+    <div class="meta-card summary">
+      <div class="meta-card-title">Resumen a cobrar · Obra</div>
+      <div class="summary-line"><span>Piso — <span id="sumPisoQty">${m.totalM2} m²</span></span><span id="sumPisoSub">${formatMoney(m.subPiso)}</span></div>
+      <div class="summary-line"><span>Zócalos — <span id="sumZocQty">${m.totalMl} ml</span></span><span id="sumZocSub">${formatMoney(m.subZocalos)}</span></div>
+      <div class="summary-line"><span>Puertas — <span id="sumPuertasQty">${m.totalPuertas} un.</span></span><span id="sumPuertasSub">${formatMoney(m.subPuertas)}</span></div>
+      <div class="summary-total"><span>Total</span><span id="sumGrandTotal">${formatMoney(m.totalObra)}</span></div>
+      <div class="summary-note">Sólo se contabilizan las tareas marcadas como Terminado.</div>
+      <button class="print-btn" id="printBtn">🖨️ Imprimir informe para Obra</button>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Enviar notas por WhatsApp</div>
+      <div class="meta-card-sub">Arma un mensaje con las notas de cada apartamento, agrupadas por nivel</div>
+      <div class="meta-row">
+        <label>Número de WhatsApp</label>
+        <input class="meta-input" type="tel" inputmode="tel" data-meta="whatsappNumber" value="${escapeAttr(meta.whatsappNumber)}" placeholder="+598...">
+      </div>
+      <button class="whatsapp-btn" id="whatsappBtn">📲 Enviar notas por WhatsApp</button>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Exportar avance completo</div>
+      <div class="meta-card-sub">Manda por WhatsApp el estado de todos los apartamentos, listo para que alguien lo edite y te lo devuelva</div>
+      <button class="whatsapp-btn" id="exportProgressBtn">📤 Exportar avance para WhatsApp</button>
+    </div>
+
+    <div class="meta-card">
+      <div class="meta-card-title">Actualizar por texto</div>
+      <div class="meta-card-sub">Pegá el mensaje editado (o escribí una novedad con ese mismo formato) y se aplica solo, sin necesitar conexión</div>
+      <textarea class="text-update-input" id="textUpdateInput" rows="7" placeholder="Nivel PB&#10;201 (entregado)&#10;Cocina (hacer puerta de bajo) terminado&#10;Piso (20) terminado&#10;Zocalo (20) terminado&#10;Puertas (3) terminado"></textarea>
+      <button class="text-update-btn" id="textUpdateBtn">🪄 Actualizar seguimiento</button>
+      <div class="text-update-status" id="textUpdateStatus"></div>
+    </div>
+  `;
+}
+
+function itemCardHTML(nivel, apto, it){
+  const entry = DATA[aptoId(nivel,apto)][it.key];
+  const estado = entry.estado;
+  const val = entry[it.field] || "";
+  return `
+    <div class="item-card ${it.cliente}">
+      <div class="item-head">
+        <span class="item-label">${it.label}</span>
+        <button class="toggle-btn" data-state="${estado}" data-nivel="${nivel}" data-apto="${apto}" data-key="${it.key}">
+          ${estado === "terminado" ? "Terminado" : "Pendiente"}
+        </button>
+      </div>
+      <input
+        class="item-input"
+        type="${it.type}"
+        ${it.type === "number" ? 'inputmode="decimal"' : ''}
+        placeholder="${it.placeholder}"
+        value="${escapeAttr(val)}"
+        data-nivel="${nivel}" data-apto="${apto}" data-key="${it.key}" data-field="${it.field}"
+      />
+    </div>
+  `;
+}
+
+function renderLevels(){
+  const container = document.getElementById("levels");
+  container.innerHTML = LEVELS.map(lvl => {
+    const pct = computeLevelPct(lvl);
+    const isCollapsed = !!collapsedLevels[lvl.nombre];
+    const rows = lvl.aptos.map(a => {
+      const nota = DATA[aptoId(lvl.nombre,a)].nota || "";
+      return `
+        <div class="apto-row">
+          <div class="apto-top">
+            <span class="apto-code">${a}</span>
+            <input class="apto-nota-input" type="text" placeholder="Nota del apartamento" value="${escapeAttr(nota)}" data-nivel="${lvl.nombre}" data-apto="${a}" />
+          </div>
+          <div class="item-grid">
+            ${ITEMS.map(it => itemCardHTML(lvl.nombre, a, it)).join("")}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="level ${isCollapsed?'collapsed':''}" data-level="${lvl.nombre}">
+        <div class="level-head" data-toggle="${lvl.nombre}">
+          <span class="level-title">${lvl.nombre}</span>
+          <div class="level-meta">
+            <div class="level-bar-wrap"><div class="level-bar-fill" style="width:${pct}%"></div></div>
+            <span class="level-pct">${pct}%</span>
+            <span class="chevron">▾</span>
+          </div>
+        </div>
+        <div class="level-body">${rows}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+function buildPrintReportHTML(){
+  const m = computeMoneyTotals();
+  const fecha = new Date().toLocaleDateString("es-UY");
+
+  let rows = "";
+  LEVELS.forEach(lvl => {
+    lvl.aptos.forEach(a => {
+      const d = DATA[aptoId(lvl.nombre, a)];
+      const pisoDone = d.piso.estado === "terminado";
+      const zocDone = d.zocalos.estado === "terminado";
+      const puertasDone = d.puertas.estado === "terminado";
+      if(!pisoDone && !zocDone && !puertasDone) return;
+      rows += `<tr>
+        <td>${lvl.nombre}</td>
+        <td>${a}</td>
+        <td>${pisoDone ? (d.piso.m2 || "0") + " m²" : "—"}</td>
+        <td>${zocDone ? (d.zocalos.ml || "0") + " ml" : "—"}</td>
+        <td>${puertasDone ? (d.puertas.cantidad || "0") : "—"}</td>
+      </tr>`;
+    });
+  });
+  if(!rows){
+    rows = `<tr><td colspan="5" style="text-align:center;color:#777;">Sin tareas marcadas como Terminado todavía</td></tr>`;
+  }
+
+  return `
+    <h1>Informe de obra — Pisos, Zócalos y Puertas</h1>
+    <div class="meta-line">Emitido por: Ruben Hernandez Rodriguez — RUT 219700170018</div>
+    <div class="meta-line">Cliente: Obra</div>
+    <div class="meta-line">Fecha: ${fecha}</div>
+
+    <table>
+      <thead><tr><th>Nivel</th><th>Apto</th><th>Piso</th><th>Zócalos</th><th>Puertas</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+
+    <table>
+      <thead><tr><th>Concepto</th><th>Cantidad</th><th>Precio unitario</th><th>Subtotal</th></tr></thead>
+      <tbody>
+        <tr><td>Piso</td><td>${m.totalM2} m²</td><td>${formatMoney(m.precioM2)}</td><td>${formatMoney(m.subPiso)}</td></tr>
+        <tr><td>Zócalos</td><td>${m.totalMl} ml</td><td>${formatMoney(m.precioMl)}</td><td>${formatMoney(m.subZocalos)}</td></tr>
+        <tr><td>Puertas</td><td>${m.totalPuertas} un.</td><td>${formatMoney(m.precioPuerta)}</td><td>${formatMoney(m.subPuertas)}</td></tr>
+      </tbody>
+    </table>
+
+    <div class="grand-total">TOTAL A COBRAR: ${formatMoney(m.totalObra)}</div>
+  `;
+}
+
+function renderPrintReport(){
+  document.getElementById("printReport").innerHTML = buildPrintReportHTML();
+}
+
+function renderAll(){
+  renderRings();
+  renderMetaSection();
+  renderLevels();
+  renderPrintReport();
+}
+
+/* Actualización liviana de totales sin reconstruir los inputs (evita perder el foco al tipear) */
+function updateSummaryDOM(){
+  const jornalesTotal = computeJornalesTotal();
+  const jEl = document.getElementById("jornalesTotal");
+  if(jEl) jEl.textContent = formatMoney(jornalesTotal);
+
+  const m = computeMoneyTotals();
+  const setText = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+  setText("sumPisoQty", m.totalM2 + " m²");
+  setText("sumPisoSub", formatMoney(m.subPiso));
+  setText("sumZocQty", m.totalMl + " ml");
+  setText("sumZocSub", formatMoney(m.subZocalos));
+  setText("sumPuertasQty", m.totalPuertas + " un.");
+  setText("sumPuertasSub", formatMoney(m.subPuertas));
+  setText("sumGrandTotal", formatMoney(m.totalObra));
+
+  renderPrintReport();
+}
+
+/* ---------- EVENTOS ---------- */
+
+async function handleToggleClick(e){
+  const btn = e.target.closest(".toggle-btn");
+  if(!btn) return;
+  const { nivel, apto, key } = btn.dataset;
+  const id = aptoId(nivel, apto);
+  const cur = DATA[id][key].estado;
+  DATA[id][key].estado = cur === "terminado" ? "pendiente" : "terminado";
+  renderAll();
+  await saveDataNow();
+}
+
+function handleLevelsInput(e){
+  const itemInput = e.target.closest(".item-input");
+  const notaInput = e.target.closest(".apto-nota-input");
+
+  if(itemInput){
+    const { nivel, apto, key, field } = itemInput.dataset;
+    const id = aptoId(nivel, apto);
+    DATA[id][key][field] = itemInput.value;
+    saveDataDebounced();
+    updateSummaryDOM();
+    return;
+  }
+  if(notaInput){
+    const { nivel, apto } = notaInput.dataset;
+    const id = aptoId(nivel, apto);
+    DATA[id].nota = notaInput.value;
+    saveDataDebounced();
+  }
+}
+
+function handleLevelToggle(e){
+  const head = e.target.closest(".level-head");
+  if(!head) return;
+  if(e.target.closest(".item-card")) return;
+  const name = head.dataset.toggle;
+  collapsedLevels[name] = !collapsedLevels[name];
+  renderLevels();
+}
+
+function handleMetaInput(e){
+  const input = e.target.closest(".meta-input");
+  if(!input) return;
+  const key = input.dataset.meta;
+  DATA.__meta[key] = input.value;
+  saveDataDebounced();
+  updateSummaryDOM();
+}
+
+function handleMetaClick(e){
+  const printBtn = e.target.closest("#printBtn");
+  if(printBtn){
+    renderPrintReport();
+    window.print();
+    return;
+  }
+  const waBtn = e.target.closest("#whatsappBtn");
+  if(waBtn){
+    handleSendWhatsApp();
+    return;
+  }
+  const exportBtn = e.target.closest("#exportProgressBtn");
+  if(exportBtn){
+    handleExportProgress();
+    return;
+  }
+  const textBtn = e.target.closest("#textUpdateBtn");
+  if(textBtn){
+    handleTextUpdate();
+  }
+}
+
+function handleDownloadHTML(){
+  const clone = document.documentElement.cloneNode(true);
+
+  // Si esta copia ya tenía un seed embebido, lo quitamos para reemplazarlo por el actual
+  const oldSeed = clone.querySelector("#seedDataScript");
+  if(oldSeed) oldSeed.remove();
+
+  const seedScript = document.createElement("script");
+  seedScript.id = "seedDataScript";
+  seedScript.textContent = "window.__SEEDED_DATA__ = " + JSON.stringify(DATA) + ";";
+
+  const cloneBody = clone.querySelector("body");
+  cloneBody.insertBefore(seedScript, cloneBody.firstChild);
+
+  const htmlStr = "<!DOCTYPE html>\n" + clone.outerHTML;
+  const blob = new Blob([htmlStr], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+
+  const fecha = new Date().toISOString().slice(0,10);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "seguimiento-obra-" + fecha + ".html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function buildFullProgressMessage(){
+  let lines = [];
+  LEVELS.forEach(lvl => {
+    lines.push(lvl.nombre);
+    lvl.aptos.forEach(a => {
+      const d = DATA[aptoId(lvl.nombre, a)];
+      const notaPart = d.nota ? ` (${d.nota})` : "";
+      lines.push(`${a}${notaPart}`);
+      lines.push(`Cocina (${d.cocina.obs || ""}) ${d.cocina.estado}`);
+      lines.push(`Piso (${d.piso.m2 || ""}) ${d.piso.estado}`);
+      lines.push(`Zocalo (${d.zocalos.ml || ""}) ${d.zocalos.estado}`);
+      lines.push(`Puertas (${d.puertas.cantidad || ""}) ${d.puertas.estado}`);
+      lines.push("");
+    });
+  });
+  return lines.join("\n").trim();
+}
+
+function handleExportProgress(){
+  const msg = buildFullProgressMessage();
+  const numberDigits = (DATA.__meta.whatsappNumber || "").replace(/[^0-9]/g, "");
+  const encoded = encodeURIComponent(msg);
+  const url = numberDigits
+    ? `https://wa.me/${numberDigits}?text=${encoded}`
+    : `https://wa.me/?text=${encoded}`;
+  window.open(url, "_blank");
+}
+
+function buildWhatsAppMessage(){
+  let lines = [];
+  LEVELS.forEach(lvl => {
+    const notedAptos = lvl.aptos.filter(a => (DATA[aptoId(lvl.nombre, a)].nota || "").trim() !== "");
+    if(notedAptos.length === 0) return;
+    lines.push(lvl.nombre);
+    notedAptos.forEach(a => {
+      const nota = DATA[aptoId(lvl.nombre, a)].nota.trim();
+      lines.push(`${a} ${nota}`);
+    });
+    lines.push("");
+  });
+  return lines.join("\n").trim();
+}
+
+function handleSendWhatsApp(){
+  const msg = buildWhatsAppMessage();
+  if(!msg){
+    alert("No hay notas cargadas en los apartamentos todavía.");
+    return;
+  }
+  const numberDigits = (DATA.__meta.whatsappNumber || "").replace(/[^0-9]/g, "");
+  const encoded = encodeURIComponent(msg);
+  const url = numberDigits
+    ? `https://wa.me/${numberDigits}?text=${encoded}`
+    : `https://wa.me/?text=${encoded}`;
+  window.open(url, "_blank");
+}
+
+function refreshAfterDataChange(){
+  renderRings();
+  renderLevels();
+  updateSummaryDOM();
+}
+
+function normalizeEstado(word){
+  if(!word) return null;
+  const w = word.toLowerCase();
+  const terminadoWords = ["terminado","termino","terminó","listo","hecho","ok","entregado","finalizado","completo","completado"];
+  const pendienteWords = ["pendiente","falta","incompleto"];
+  if(terminadoWords.some(t => w.includes(t))) return "terminado";
+  if(pendienteWords.some(t => w.includes(t))) return "pendiente";
+  return null;
+}
+
+const TASK_FIELD_MAP = {
+  cocina:  { dataKey:"cocina",  field:"obs" },
+  piso:    { dataKey:"piso",    field:"m2" },
+  zocalo:  { dataKey:"zocalos", field:"ml" },
+  zócalo:  { dataKey:"zocalos", field:"ml" },
+  zocalos: { dataKey:"zocalos", field:"ml" },
+  zócalos: { dataKey:"zocalos", field:"ml" },
+  puertas: { dataKey:"puertas", field:"cantidad" },
+};
+
+function parseProgressText(text){
+  const lines = text.split("\n");
+  let currentId = null;
+  const applied = new Set();
+  const taskRegex = /^(cocina|z[oó]calo[s]?|piso|puertas)\s*(?:\(([^)]*)\))?\s*(.*)$/i;
+
+  lines.forEach(rawLine => {
+    const line = rawLine.trim();
+    if(!line) return;
+    if(/^nivel\b/i.test(line)) return; // no hace falta: cada apto se identifica por su número, que es único
+
+    const taskMatch = line.match(taskRegex);
+    if(taskMatch && currentId){
+      const mapEntry = TASK_FIELD_MAP[taskMatch[1].toLowerCase()];
+      if(mapEntry){
+        const value = (taskMatch[2] || "").trim();
+        const estado = normalizeEstado((taskMatch[3] || "").trim());
+        const target = DATA[currentId][mapEntry.dataKey];
+        if(value) target[mapEntry.field] = value;
+        if(estado) target.estado = estado;
+        applied.add(currentId);
+      }
+      return;
+    }
+
+    // si no es una línea de tarea, es un encabezado de apartamento: "<código> (<nota>)"
+    const aptoMatch = line.match(/^(\S+)\s*(?:\((.*)\))?\s*$/);
+    if(aptoMatch){
+      const id = APTO_INDEX[aptoMatch[1]];
+      if(id){
+        currentId = id;
+        if(aptoMatch[2] !== undefined){
+          DATA[id].nota = aptoMatch[2].trim();
+          applied.add(id);
+        }
+      } else {
+        currentId = null;
+      }
+    }
+  });
+
+  return Array.from(applied);
+}
+
+async function handleTextUpdate(){
+  const textarea = document.getElementById("textUpdateInput");
+  const statusEl = document.getElementById("textUpdateStatus");
+  const text = textarea.value.trim();
+  if(!text){
+    statusEl.textContent = "Escribí algo primero.";
+    statusEl.style.color = "var(--muted)";
+    return;
+  }
+
+  const appliedIds = parseProgressText(text);
+
+  if(appliedIds.length === 0){
+    statusEl.textContent = "No se reconoció ningún apartamento válido en el texto.";
+    statusEl.style.color = "var(--amber)";
+    return;
+  }
+
+  const appliedCodes = appliedIds.map(id => id.split("__")[1]);
+  refreshAfterDataChange();
+  await saveDataNow();
+  statusEl.textContent = "Actualizado: apto " + appliedCodes.join(", ");
+  statusEl.style.color = "var(--green)";
+  textarea.value = "";
+}
+
+async function handleReset(){
+  if(!confirm("¿Reiniciar todo el seguimiento de la obra? Esta acción no se puede deshacer.")) return;
+  LEVELS.forEach(lvl => {
+    lvl.aptos.forEach(a => {
+      DATA[aptoId(lvl.nombre, a)] = defaultAptoData();
+    });
+  });
+  DATA.__meta = defaultMeta();
+  renderAll();
+  await saveDataNow();
+}
+
+const levelsEl = document.getElementById("levels");
+levelsEl.addEventListener("click", (e) => {
+  handleToggleClick(e);
+  handleLevelToggle(e);
+});
+levelsEl.addEventListener("input", handleLevelsInput);
+levelsEl.addEventListener("blur", async (e) => {
+  if(e.target.classList && (e.target.classList.contains("item-input") || e.target.classList.contains("apto-nota-input"))){
+    await saveDataNow();
+    applyPendingRemoteRenderIfAny();
+  }
+}, true);
+
+const metaEl = document.getElementById("metaSection");
+metaEl.addEventListener("input", handleMetaInput);
+metaEl.addEventListener("click", handleMetaClick);
+metaEl.addEventListener("blur", async (e) => {
+  if(e.target.classList && e.target.classList.contains("meta-input")){
+    await saveDataNow();
+    applyPendingRemoteRenderIfAny();
+  }
+}, true);
+
+document.getElementById("resetBtn").addEventListener("click", handleReset);
+document.getElementById("downloadBtn").addEventListener("click", handleDownloadHTML);
+
+(async function init(){
+  await loadData();
+  renderAll();
+})();
+</script>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.error('SW error', err));
+  });
+}
+</script>
+
+</body></html>

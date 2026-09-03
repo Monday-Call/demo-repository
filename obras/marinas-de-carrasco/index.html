@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Control de Obra — Marinas de Carrasco</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F3EFE4;
+    --paper-line: #DCD5C2;
+    --ink: #22303C;
+    --ink-soft: #5B6B77;
+    --amber: #D99B2B;
+    --amber-deep: #B87F1C;
+    --brick: #B5502F;
+    --green: #3F7A4E;
+    --blue: #3D6C8C;
+    --card: #FFFDF8;
+    --shadow: 0 1px 0 rgba(34,48,60,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(transparent, transparent 27px, var(--paper-line) 28px),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Archivo',sans-serif;
+    padding:20px 14px 60px;
+  }
+  .wrap{max-width:900px;margin:0 auto;}
+
+  header{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:12px;
+    border-bottom:3px solid var(--ink);
+    padding-bottom:14px;
+    margin-bottom:14px;
+  }
+  .tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    padding:3px 8px;
+    border-radius:3px;
+    margin-bottom:8px;
+  }
+  h1{
+    font-size:20px;
+    font-weight:800;
+    margin:0;
+    letter-spacing:-0.01em;
+    line-height:1.2;
+  }
+  .stamp{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--amber-deep);
+    border:2px solid var(--amber-deep);
+    border-radius:6px;
+    padding:6px 10px;
+    transform:rotate(3deg);
+    white-space:nowrap;
+    font-weight:600;
+  }
+
+  #storage-banner{display:none;background:#FBF3E1;border:1px solid var(--amber-deep);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:var(--ink);}
+
+  nav{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  nav button{
+    font-family:'Archivo',sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    border:2px solid var(--ink);
+    background:transparent;
+    color:var(--ink);
+    padding:7px 12px;
+    border-radius:20px;
+    cursor:pointer;
+  }
+  nav button.active{background:var(--ink);color:var(--paper);}
+
+  section{display:none;}
+  section.active{display:block;}
+
+  .card{
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    border-radius:10px;
+    padding:16px;
+    margin-bottom:14px;
+    box-shadow:var(--shadow);
+  }
+  .card h2{
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--ink-soft);
+    margin:0 0 12px;
+    font-weight:700;
+  }
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:520px){.grid2{grid-template-columns:1fr;}}
+
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  input,select,textarea{
+    width:100%;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    padding:9px 10px;
+    border:1.5px solid var(--paper-line);
+    border-radius:6px;
+    background:#fff;
+    color:var(--ink);
+    margin-bottom:12px;
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--amber);outline-offset:1px;border-color:var(--amber-deep);}
+
+  .field-usd{position:relative;}
+  .field-usd::before{
+    content:"USD";
+    position:absolute;
+    right:10px;
+    top:9px;
+    font-size:11px;
+    color:var(--ink-soft);
+    font-family:'IBM Plex Mono',monospace;
+    pointer-events:none;
+  }
+
+  .btn{
+    font-family:'Archivo',sans-serif;
+    font-weight:700;
+    font-size:14px;
+    background:var(--amber);
+    color:var(--ink);
+    border:none;
+    border-radius:8px;
+    padding:11px 18px;
+    cursor:pointer;
+    width:100%;
+  }
+  .btn:hover{background:var(--amber-deep);}
+  .btn-ghost{
+    background:transparent;
+    border:1.5px solid var(--ink);
+    color:var(--ink);
+  }
+  .btn-small{
+    width:auto;padding:5px 10px;font-size:12px;border-radius:6px;
+    background:var(--brick);color:#fff;
+  }
+
+  table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12.5px;}
+  th{
+    text-align:left;
+    text-transform:uppercase;
+    font-size:10.5px;
+    letter-spacing:0.04em;
+    color:var(--ink-soft);
+    border-bottom:2px solid var(--ink);
+    padding:7px 6px;
+  }
+  td{padding:8px 6px;border-bottom:1px solid var(--paper-line);}
+  tr:last-child td{border-bottom:none;}
+  .num{text-align:right;font-variant-numeric:tabular-nums;}
+  .empty{color:var(--ink-soft);font-style:italic;padding:14px 4px;font-family:'Archivo',sans-serif;font-size:13px;}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  @media(max-width:520px){.stat-row{grid-template-columns:1fr 1fr;}}
+  .stat{
+    background:var(--card);
+    border:1px solid var(--paper-line);
+    border-radius:10px;
+    padding:12px;
+  }
+  .stat .k{font-size:10.5px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:0.05em;font-weight:600;}
+  .stat .v{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;margin-top:3px;}
+  .v.pos{color:var(--green);}
+  .v.neg{color:var(--brick);}
+
+  .gasto-row{display:grid;grid-template-columns:5fr 12fr 4fr;gap:8px;align-items:start;}
+  @media(max-width:420px){.gasto-row{grid-template-columns:1fr;}}
+
+  .weekcard{
+    border:1px solid var(--paper-line);
+    border-radius:10px;
+    margin-bottom:10px;
+    overflow:hidden;
+  }
+  .weekhead{
+    background:var(--ink);
+    color:var(--paper);
+    padding:9px 14px;
+    display:flex;
+    justify-content:space-between;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    font-weight:600;
+  }
+  .weekbody{padding:10px 14px;background:var(--card);}
+  .weekbody .line{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;border-bottom:1px dashed var(--paper-line);}
+  .weekbody .line:last-child{border-bottom:none;}
+  .weekbody .line .l{color:var(--ink-soft);}
+  .weekbody .line .r{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .margin-line{background:#FBF3E1;margin:8px -14px -10px;padding:10px 14px;font-weight:700;}
+
+  .note{font-size:12px;color:var(--ink-soft);line-height:1.5;margin-top:6px;}
+  .save-msg{font-size:12px;color:var(--green);font-weight:600;min-height:16px;margin-top:-6px;margin-bottom:8px;}
+
+  .badge{
+    display:inline-block;font-size:10.5px;font-family:'IBM Plex Mono',monospace;
+    padding:2px 7px;border-radius:10px;font-weight:600;letter-spacing:0.02em;
+  }
+  .badge-destajo{background:#E4EEF1;color:var(--blue);}
+  .badge-fijo{background:#EAE4F1;color:#6A4C93;}
+  .badge-supervisor{background:#FBF3E1;color:var(--amber-deep);}
+
+  .worker-item, .gasto-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:10px 0;border-bottom:1px solid var(--paper-line);gap:10px;
+  }
+  .worker-item:last-child, .gasto-item:last-child{border-bottom:none;}
+  .worker-item .info, .gasto-item .info{font-size:13px;}
+  .worker-item .info b, .gasto-item .info b{display:block;font-size:13.5px;}
+  .worker-item .info .sub, .gasto-item .info .sub{color:var(--ink-soft);font-size:11.5px;font-family:'IBM Plex Mono',monospace;margin-top:2px;}
+
+  .totales-mini{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+  @media(min-width:560px){.totales-mini{grid-template-columns:repeat(3,1fr);}}
+  .totales-mini .box{background:var(--card);border:1px solid var(--paper-line);border-radius:8px;padding:9px 11px;}
+  .totales-mini .box .k{font-size:10px;text-transform:uppercase;color:var(--ink-soft);font-weight:600;letter-spacing:0.03em;}
+  .totales-mini .box .v{font-family:'IBM Plex Mono',monospace;font-size:14.5px;font-weight:600;margin-top:2px;}
+</style>
+</head>
+<body>
+<a href="../../index.html" id="rhr-portal-back-link" style="position:fixed;top:10px;left:10px;z-index:2147483647;background:#14181f;color:#fff;font:600 12px/1 -apple-system,system-ui,sans-serif;padding:8px 13px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.3);opacity:.82">&larr; Portal RHR</a>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="tag" id="obra-tag">RHR · Obra</div>
+      <h1 id="obra-title">Control de Obra</h1>
+    </div>
+    <div class="stamp" id="meta-stamp">— PTAS<br>PROYECTO</div>
+  </header>
+
+  <nav>
+    <button class="tab-btn active" data-tab="puertas">Puertas</button>
+    <button class="tab-btn" data-tab="gastos">Gastos</button>
+    <button class="tab-btn" data-tab="trabajadores">Trabajadores</button>
+    <button class="tab-btn" data-tab="resumen">Resumen</button>
+    <button class="tab-btn" data-tab="config">Config</button>
+  </nav>
+
+  <div id="storage-banner">
+    ⚠ Todavía no configuraste Firebase en este archivo. Los datos solo se guardan en esta sesión — mirá los pasos que te pasé para conectarlo y que sincronice en todos los dispositivos.
+  </div>
+
+  <!-- PUERTAS -->
+  <section id="puertas" class="active">
+    <div class="card">
+      <h2>Cargar día trabajado</h2>
+      <div class="grid2">
+        <div>
+          <label for="f-fecha">Fecha</label>
+          <input type="date" id="f-fecha">
+        </div>
+        <div>
+          <label for="f-trabajador">Trabajador (destajo)</label>
+          <select id="f-trabajador"></select>
+        </div>
+      </div>
+      <label for="f-puertas">Puertas instaladas</label>
+      <input type="number" id="f-puertas" min="0" step="1" placeholder="ej: 5">
+      <button class="btn" id="btn-add">+ Agregar al registro</button>
+      <div class="save-msg" id="add-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Historial de puertas</h2>
+      <div id="tabla-registro"></div>
+    </div>
+  </section>
+
+  <!-- GASTOS -->
+  <section id="gastos">
+    <div class="card">
+      <h2>Cargar gasto o compra</h2>
+      <div class="grid2">
+        <div>
+          <label for="g-fecha">Fecha</label>
+          <input type="date" id="g-fecha">
+        </div>
+        <div>
+          <label for="g-tipo">Tipo</label>
+          <select id="g-tipo">
+            <option value="espuma">Compra de espuma</option>
+            <option value="aportes">Pago de aportes sociales</option>
+            <option value="salario">Pago de salario fijo</option>
+            <option value="viaje">Viaje de supervisión</option>
+            <option value="otro">Otro gasto / compra</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="campos-espuma" class="gtipo-fields">
+        <div class="grid2">
+          <div>
+            <label for="g-botes">Cantidad de botes</label>
+            <input type="number" id="g-botes" min="0" step="1">
+          </div>
+          <div>
+            <label for="g-precio-espuma">Precio total de la compra</label>
+            <div class="field-usd"><input type="number" id="g-precio-espuma" step="0.01"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="campos-trabajador" class="gtipo-fields" style="display:none;">
+        <label for="g-trabajador">Trabajador</label>
+        <select id="g-trabajador"></select>
+        <label for="g-monto-trabajador">Monto</label>
+        <div class="field-usd"><input type="number" id="g-monto-trabajador" step="0.01"></div>
+      </div>
+
+      <div id="campos-otro" class="gtipo-fields" style="display:none;">
+        <label for="g-desc">Descripción</label>
+        <input type="text" id="g-desc" placeholder="ej: tapajuntas, herramienta, flete...">
+        <label for="g-monto-otro">Monto</label>
+        <div class="field-usd"><input type="number" id="g-monto-otro" step="0.01"></div>
+      </div>
+
+      <button class="btn" id="btn-add-gasto">+ Agregar gasto</button>
+      <div class="save-msg" id="gasto-msg"></div>
+    </div>
+
+    <div class="totales-mini" id="totales-gastos"></div>
+
+    <div class="card">
+      <h2>Historial de gastos</h2>
+      <div id="tabla-gastos"></div>
+    </div>
+  </section>
+
+  <!-- TRABAJADORES -->
+  <section id="trabajadores">
+    <div class="card">
+      <h2>Agregar trabajador</h2>
+      <label for="w-nombre">Nombre</label>
+      <input type="text" id="w-nombre" placeholder="ej: Ricardo">
+      <label for="w-tipo">Tipo</label>
+      <select id="w-tipo">
+        <option value="destajo">Destajo (cobra por puerta instalada)</option>
+        <option value="fijo">Fijo mensual (aporte + salario líquido)</option>
+        <option value="supervisor">Supervisor (cobra por viaje)</option>
+      </select>
+      <div class="grid2" id="w-campos-fijo">
+        <div>
+          <label for="w-aporte">Aporte mensual de referencia</label>
+          <div class="field-usd"><input type="number" id="w-aporte" step="0.01" placeholder="opcional"></div>
+        </div>
+        <div>
+          <label for="w-salario">Salario líquido de referencia</label>
+          <div class="field-usd"><input type="number" id="w-salario" step="0.01" placeholder="opcional"></div>
+        </div>
+      </div>
+      <div class="grid2" id="w-campos-supervisor" style="display:none;">
+        <div>
+          <label for="w-viajes-semana">Viajes por semana</label>
+          <input type="number" id="w-viajes-semana" step="1" min="0" placeholder="ej: 2">
+        </div>
+        <div>
+          <label for="w-pago-viaje">Pago por viaje</label>
+          <div class="field-usd"><input type="number" id="w-pago-viaje" step="0.01"></div>
+        </div>
+      </div>
+      <p class="note" style="margin-top:-4px;" id="w-nota">Estos dos valores son solo de referencia para planificar — el gasto real que se descuenta del margen es el que cargues en la pestaña Gastos.</p>
+      <button class="btn" id="btn-add-worker">+ Agregar trabajador</button>
+      <div class="save-msg" id="worker-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Equipo actual</h2>
+      <div id="lista-trabajadores"></div>
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section id="resumen">
+    <div class="stat-row" id="stat-row"></div>
+    <div id="semanas"></div>
+    <p class="note">Cada semana suma: facturación (puertas × precio) menos espuma, aportes, salarios, viajes, otros gastos y pagos a destajo cargados con fecha dentro de esa semana.</p>
+  </section>
+
+  <!-- CONFIG -->
+  <section id="config">
+    <div class="card">
+      <h2>Datos del proyecto</h2>
+      <label for="c-obra">Nombre de la obra</label>
+      <input type="text" id="c-obra">
+
+      <label for="c-precio">Precio cobrado por puerta instalada</label>
+      <div class="field-usd"><input type="number" id="c-precio" step="0.01"></div>
+
+      <label for="c-pago">Pago por puerta al trabajador destajo (tarifa general)</label>
+      <div class="field-usd"><input type="number" id="c-pago" step="0.01"></div>
+
+      <label for="c-meta">Meta de puertas totales</label>
+      <input type="number" id="c-meta" step="1">
+      <p class="note" style="margin-top:-6px;">Cuando tengas la cantidad de apartamentos y puertas por apartamento, pasámelo y desglosamos esta meta por apartamento.</p>
+
+      <button class="btn" id="btn-save-config">Guardar cambios</button>
+      <div class="save-msg" id="config-msg"></div>
+    </div>
+
+    <div class="card">
+      <h2>Copia de seguridad</h2>
+      <p class="note" style="margin-top:0">El guardado automático no anda en todos los dispositivos. Para no perder datos: descargá una copia después de cargar información, y subila la próxima vez que abras el artefacto.</p>
+      <button class="btn btn-ghost" id="btn-export" style="margin-bottom:10px;">⬇ Descargar copia (.json)</button>
+      <label for="import-file">Restaurar desde un archivo descargado antes</label>
+      <input type="file" id="import-file" accept="application/json">
+      <div class="save-msg" id="import-msg"></div>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+// ============================================================
+// FIREBASE — pegá acá la configuración de tu proyecto
+// (Firebase Console → ⚙ Configuración del proyecto → Tus apps → SDK setup and configuration)
+// ============================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCvTJ8C-a2hqqp9LtkfYlu_-RYbecZ0QN8",
+  authDomain: "marinas-de-carrasco.firebaseapp.com",
+  projectId: "marinas-de-carrasco",
+  storageBucket: "marinas-de-carrasco.firebasestorage.app",
+  messagingSenderId: "648613166773",
+  appId: "1:648613166773:web:252742a4c4bfcf4cfdc8fc"
+};
+
+const OBRA_ID = "marinas-de-carrasco"; // cambiá esto si algún día usás el mismo archivo para otra obra
+
+let db = null;
+let FIREBASE_READY = false;
+try{
+  if(firebaseConfig.apiKey !== "TU_API_KEY"){
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    FIREBASE_READY = true;
+  }
+}catch(e){
+  console.error("Firebase no se pudo inicializar:", e);
+  FIREBASE_READY = false;
+}
+
+function docRef(key){ return doc(db, "obras", OBRA_ID, "datos", key); }
+
+async function persist(key, value){
+  if(!FIREBASE_READY) return false;
+  try{
+    await setDoc(docRef(key), {value: JSON.stringify(value), updatedAt: new Date().toISOString()});
+    return true;
+  }catch(e){
+    console.error("Error guardando en Firestore:", e);
+    return false;
+  }
+}
+
+function listenKey(key, onChange){
+  if(!FIREBASE_READY) return;
+  onSnapshot(docRef(key), (snap)=>{
+    if(snap.exists() && snap.data().value){
+      try{ onChange(JSON.parse(snap.data().value)); }catch(e){ console.error(e); }
+    }
+  }, (err)=>{ console.error("Error escuchando Firestore:", err); });
+}
+
+const DEFAULT_CONFIG = {
+  obra: "Marinas de Carrasco",
+  precio: 40,
+  pago: 15,
+  meta: 600
+};
+
+let config = {...DEFAULT_CONFIG};
+let workers = [
+  {id: 1, nombre: "Javier", tipo: "destajo", aporte: null, salario: null},
+  {id: 2, nombre: "Humberto", tipo: "destajo", aporte: null, salario: null}
+];
+let doorEntries = [];
+let gastos = [];
+
+// ---------- carga y sincronización ----------
+async function loadData(){
+  if(!FIREBASE_READY){
+    document.getElementById('storage-banner').style.display = 'block';
+  } else {
+    listenKey('config', (v)=>{
+      config = {...DEFAULT_CONFIG, ...v};
+      hydrateConfigForm();
+      renderResumen();
+    });
+    listenKey('workers', (v)=>{
+      workers = v;
+      renderWorkerSelects();
+      renderWorkersList();
+      renderRegistro();
+      renderGastosHistory();
+      renderResumen();
+    });
+    listenKey('doorEntries', (v)=>{
+      doorEntries = v;
+      renderRegistro();
+      renderResumen();
+    });
+    listenKey('gastos', (v)=>{
+      gastos = v;
+      renderGastosHistory();
+      renderResumen();
+    });
+  }
+
+  hydrateConfigForm();
+  renderWorkerSelects();
+  renderWorkersList();
+  renderRegistro();
+  renderGastosHistory();
+  renderResumen();
+}
+
+function hydrateConfigForm(){
+  document.getElementById('c-obra').value = config.obra;
+  document.getElementById('c-precio').value = config.precio;
+  document.getElementById('c-pago').value = config.pago;
+  document.getElementById('c-meta').value = config.meta;
+  document.getElementById('obra-tag').textContent = "RHR · " + config.obra;
+  document.getElementById('obra-title').innerHTML = "Control de Obra<br>" + config.obra;
+  document.getElementById('meta-stamp').innerHTML = config.meta + " PTAS<br>PROYECTO";
+}
+
+async function saveConfig(){
+  config.obra = document.getElementById('c-obra').value.trim() || "Obra";
+  config.precio = parseFloat(document.getElementById('c-precio').value) || 0;
+  config.pago = parseFloat(document.getElementById('c-pago').value) || 0;
+  config.meta = parseInt(document.getElementById('c-meta').value) || 0;
+  const msg = document.getElementById('config-msg');
+  const saved = await persist('config', config);
+  msg.style.color = saved ? "var(--green)" : "var(--ink-soft)";
+  msg.textContent = saved ? "Guardado ✓" : "Aplicado en esta sesión. Descargá una copia para no perderlo.";
+  setTimeout(()=>msg.textContent="", 3000);
+  hydrateConfigForm();
+  renderResumen();
+}
+
+// ---------- helpers ----------
+function fmt(n){
+  return "USD " + (n||0).toLocaleString('es-UY', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtDate(s){
+  if(!s) return "";
+  const [y,m,d] = s.split("-");
+  return `${d}/${m}/${y.slice(2)}`;
+}
+function isoWeek(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() + 3 - (d.getDay()+6)%7);
+  const week1 = new Date(d.getFullYear(),0,4);
+  return 1 + Math.round(((d - week1) / 86400000 - 3 + (week1.getDay()+6)%7)/7);
+}
+function isoYear(dateStr){
+  const d = new Date(dateStr + "T00:00:00");
+  d.setDate(d.getDate() + 3 - (d.getDay()+6)%7);
+  return d.getFullYear();
+}
+function weekKey(dateStr){
+  return isoYear(dateStr) + "-W" + String(isoWeek(dateStr)).padStart(2,"0");
+}
+function workerName(id){
+  const w = workers.find(w=>w.id===id);
+  return w ? w.nombre : "—";
+}
+function tipoBadge(tipo){
+  const map = {destajo:["Destajo","badge-destajo"], fijo:["Fijo mensual","badge-fijo"], supervisor:["Supervisor","badge-supervisor"]};
+  const [label, cls] = map[tipo] || ["", ""];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+// ---------- workers ----------
+function renderWorkerSelects(){
+  const destajoSel = document.getElementById('f-trabajador');
+  destajoSel.innerHTML = "";
+  const destajoWorkers = workers.filter(w=>w.tipo==='destajo');
+  if(destajoWorkers.length===0){
+    destajoSel.innerHTML = '<option value="">Agregá un trabajador destajo primero</option>';
+  }else{
+    destajoWorkers.forEach(w=>{
+      const opt = document.createElement('option');
+      opt.value = w.id; opt.textContent = w.nombre;
+      destajoSel.appendChild(opt);
+    });
+  }
+
+  const gSel = document.getElementById('g-trabajador');
+  gSel.innerHTML = "";
+  workers.forEach(w=>{
+    const opt = document.createElement('option');
+    opt.value = w.id; opt.textContent = `${w.nombre} (${w.tipo})`;
+    gSel.appendChild(opt);
+  });
+}
+
+function renderWorkersList(){
+  const el = document.getElementById('lista-trabajadores');
+  if(workers.length===0){
+    el.innerHTML = '<div class="empty">Todavía no agregaste trabajadores.</div>';
+    return;
+  }
+  el.innerHTML = workers.map(w=>{
+    let refs = "";
+    if(w.tipo === 'supervisor'){
+      if(w.viajesSemana) refs += `${w.viajesSemana} viaje(s)/semana  `;
+      if(w.pagoViaje) refs += `${fmt(w.pagoViaje)}/viaje`;
+      if(w.viajesSemana && w.pagoViaje) refs += `  ·  est. ${fmt(w.viajesSemana * w.pagoViaje)}/semana`;
+    } else {
+      if(w.aporte) refs += `Aporte ref: ${fmt(w.aporte)}  `;
+      if(w.salario) refs += `Salario ref: ${fmt(w.salario)}`;
+    }
+    return `<div class="worker-item">
+      <div class="info">
+        <b>${w.nombre} ${tipoBadge(w.tipo)}</b>
+        ${refs ? `<span class="sub">${refs}</span>` : ""}
+      </div>
+      <button class="btn btn-small" onclick="deleteWorker(${w.id})">borrar</button>
+    </div>`;
+  }).join("");
+}
+
+async function addWorker(){
+  const nombre = document.getElementById('w-nombre').value.trim();
+  const tipo = document.getElementById('w-tipo').value;
+  const aporte = parseFloat(document.getElementById('w-aporte').value) || null;
+  const salario = parseFloat(document.getElementById('w-salario').value) || null;
+  const viajesSemana = parseFloat(document.getElementById('w-viajes-semana').value) || null;
+  const pagoViaje = parseFloat(document.getElementById('w-pago-viaje').value) || null;
+  const msg = document.getElementById('worker-msg');
+  if(!nombre){
+    msg.style.color = "var(--brick)";
+    msg.textContent = "Ponele un nombre al trabajador.";
+    return;
+  }
+  workers.push({id: Date.now(), nombre, tipo, aporte, salario, viajesSemana, pagoViaje});
+  const saved = await persist('workers', workers);
+  msg.style.color = saved ? "var(--green)" : "var(--ink-soft)";
+  msg.textContent = saved ? "Agregado ✓" : "Agregado en esta sesión. Recordá descargar copia.";
+  setTimeout(()=>msg.textContent="", 2500);
+  document.getElementById('w-nombre').value = "";
+  document.getElementById('w-aporte').value = "";
+  document.getElementById('w-salario').value = "";
+  document.getElementById('w-viajes-semana').value = "";
+  document.getElementById('w-pago-viaje').value = "";
+  renderWorkerSelects();
+  renderWorkersList();
+  renderRegistro();
+  renderGastosHistory();
+  renderResumen();
+}
+
+async function deleteWorker(id){
+  workers = workers.filter(w=>w.id!==id);
+  await persist('workers', workers);
+  renderWorkerSelects();
+  renderWorkersList();
+  renderRegistro();
+  renderGastosHistory();
+  renderResumen();
+}
+
+// ---------- puertas ----------
+async function addEntry(){
+  const fecha = document.getElementById('f-fecha').value;
+  const trabajadorId = parseInt(document.getElementById('f-trabajador').value);
+  const puertas = parseInt(document.getElementById('f-puertas').value);
+  const msg = document.getElementById('add-msg');
+  if(!fecha || !trabajadorId || !puertas || puertas <= 0){
+    msg.style.color = "var(--brick)";
+    msg.textContent = "Completá fecha, trabajador y cantidad de puertas.";
+    return;
+  }
+  doorEntries.push({id: Date.now(), fecha, trabajadorId, puertas});
+  doorEntries.sort((a,b)=> a.fecha.localeCompare(b.fecha));
+  const saved = await persist('doorEntries', doorEntries);
+  msg.style.color = saved ? "var(--green)" : "var(--ink-soft)";
+  msg.textContent = saved ? "Agregado ✓" : "Agregado en esta sesión. Recordá descargar copia.";
+  document.getElementById('f-puertas').value = "";
+  setTimeout(()=>msg.textContent="", 2500);
+  renderRegistro();
+  renderResumen();
+}
+
+async function deleteEntry(id){
+  doorEntries = doorEntries.filter(e=>e.id!==id);
+  await persist('doorEntries', doorEntries);
+  renderRegistro();
+  renderResumen();
+}
+
+function renderRegistro(){
+  const el = document.getElementById('tabla-registro');
+  if(doorEntries.length === 0){
+    el.innerHTML = '<div class="empty">Todavía no cargaste ningún día.</div>';
+    return;
+  }
+  let rows = doorEntries.map(e=>{
+    const pago = e.puertas * config.pago;
+    return `<tr>
+      <td>${fmtDate(e.fecha)}</td>
+      <td>${workerName(e.trabajadorId)}</td>
+      <td class="num">${e.puertas}</td>
+      <td class="num">${fmt(pago)}</td>
+      <td class="num"><button class="btn btn-small" onclick="deleteEntry(${e.id})">borrar</button></td>
+    </tr>`;
+  }).join("");
+  el.innerHTML = `<table>
+    <thead><tr><th>Fecha</th><th>Trabajador</th><th class="num">Puertas</th><th class="num">Pago</th><th></th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+// ---------- gastos ----------
+document.getElementById('g-tipo').addEventListener('change', updateGastoFields);
+document.getElementById('g-trabajador').addEventListener('change', autofillMontoViaje);
+function updateGastoFields(){
+  const tipo = document.getElementById('g-tipo').value;
+  document.getElementById('campos-espuma').style.display = tipo==='espuma' ? 'block' : 'none';
+  document.getElementById('campos-trabajador').style.display = (tipo==='aportes'||tipo==='salario'||tipo==='viaje') ? 'block' : 'none';
+  document.getElementById('campos-otro').style.display = tipo==='otro' ? 'block' : 'none';
+  const twLabel = document.querySelector('#campos-trabajador label[for="g-trabajador"]');
+  const labels = {aportes:'Trabajador', salario:'Trabajador (fijo)', viaje:'Trabajador (supervisor)'};
+  if(twLabel) twLabel.textContent = labels[tipo] || 'Trabajador';
+  if(tipo === 'viaje') autofillMontoViaje();
+}
+function autofillMontoViaje(){
+  const tipo = document.getElementById('g-tipo').value;
+  if(tipo !== 'viaje') return;
+  const trabajadorId = parseInt(document.getElementById('g-trabajador').value);
+  const w = workers.find(w=>w.id===trabajadorId);
+  const montoInput = document.getElementById('g-monto-trabajador');
+  if(w && w.pagoViaje && !montoInput.value){
+    montoInput.value = w.pagoViaje;
+  }
+}
+
+async function addGasto(){
+  const fecha = document.getElementById('g-fecha').value;
+  const tipo = document.getElementById('g-tipo').value;
+  const msg = document.getElementById('gasto-msg');
+  if(!fecha){
+    msg.style.color = "var(--brick)";
+    msg.textContent = "Poné una fecha.";
+    return;
+  }
+  let entry = {id: Date.now(), fecha, tipo};
+
+  if(tipo === 'espuma'){
+    const botes = parseInt(document.getElementById('g-botes').value) || 0;
+    const monto = parseFloat(document.getElementById('g-precio-espuma').value) || 0;
+    if(monto<=0){ msg.style.color="var(--brick)"; msg.textContent="Poné el precio de la compra."; return; }
+    entry.botes = botes; entry.monto = monto;
+  } else if(tipo === 'aportes' || tipo === 'salario' || tipo === 'viaje'){
+    const trabajadorId = parseInt(document.getElementById('g-trabajador').value);
+    const monto = parseFloat(document.getElementById('g-monto-trabajador').value) || 0;
+    if(!trabajadorId || monto<=0){ msg.style.color="var(--brick)"; msg.textContent="Elegí trabajador y monto."; return; }
+    entry.trabajadorId = trabajadorId; entry.monto = monto;
+  } else {
+    const desc = document.getElementById('g-desc').value.trim();
+    const monto = parseFloat(document.getElementById('g-monto-otro').value) || 0;
+    if(!desc || monto<=0){ msg.style.color="var(--brick)"; msg.textContent="Completá descripción y monto."; return; }
+    entry.desc = desc; entry.monto = monto;
+  }
+
+  gastos.push(entry);
+  gastos.sort((a,b)=> a.fecha.localeCompare(b.fecha));
+  const saved = await persist('gastos', gastos);
+  msg.style.color = saved ? "var(--green)" : "var(--ink-soft)";
+  msg.textContent = saved ? "Agregado ✓" : "Agregado en esta sesión. Recordá descargar copia.";
+  setTimeout(()=>msg.textContent="", 2500);
+
+  document.getElementById('g-botes').value = "";
+  document.getElementById('g-precio-espuma').value = "";
+  document.getElementById('g-monto-trabajador').value = "";
+  document.getElementById('g-desc').value = "";
+  document.getElementById('g-monto-otro').value = "";
+
+  renderGastosHistory();
+  renderResumen();
+}
+
+async function deleteGasto(id){
+  gastos = gastos.filter(g=>g.id!==id);
+  await persist('gastos', gastos);
+  renderGastosHistory();
+  renderResumen();
+}
+
+function gastoLabel(g){
+  const tipoNames = {espuma:'Espuma', aportes:'Aportes sociales', salario:'Salario fijo', viaje:'Viaje supervisión', otro:'Otro'};
+  let detail = "";
+  if(g.tipo==='espuma') detail = `${g.botes||0} bote(s)` + (g.botes ? ` · ${fmt(g.monto/g.botes)}/bote` : "");
+  else if(g.tipo==='otro') detail = g.desc;
+  else detail = workerName(g.trabajadorId);
+  return {nombre: tipoNames[g.tipo], detail};
+}
+
+function renderGastosHistory(){
+  const el = document.getElementById('tabla-gastos');
+  if(gastos.length === 0){
+    el.innerHTML = '<div class="empty">Todavía no cargaste gastos ni compras.</div>';
+  } else {
+    el.innerHTML = gastos.map(g=>{
+      const {nombre, detail} = gastoLabel(g);
+      return `<div class="gasto-item">
+        <div class="info">
+          <b>${nombre} — ${fmtDate(g.fecha)}</b>
+          <span class="sub">${detail}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-family:'IBM Plex Mono',monospace;font-weight:600;">${fmt(g.monto)}</span>
+          <button class="btn btn-small" onclick="deleteGasto(${g.id})">borrar</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  const totals = {espuma:0, aportes:0, salario:0, viaje:0, otro:0};
+  gastos.forEach(g=> totals[g.tipo] += g.monto);
+  const labels = {espuma:'Espuma', aportes:'Aportes', salario:'Salarios', viaje:'Viajes', otro:'Otros'};
+  document.getElementById('totales-gastos').innerHTML = Object.keys(labels).map(k=>
+    `<div class="box"><div class="k">${labels[k]}</div><div class="v">${fmt(totals[k])}</div></div>`
+  ).join("");
+}
+
+// ---------- resumen ----------
+function renderResumen(){
+  // group everything by week
+  const weeks = {};
+  function wk(fecha){
+    const k = weekKey(fecha);
+    if(!weeks[k]) weeks[k] = {puertas:{}, espuma:0, aportes:0, salario:0, viaje:0, otro:0};
+    return weeks[k];
+  }
+
+  doorEntries.forEach(e=>{
+    const w = wk(e.fecha);
+    const name = workerName(e.trabajadorId);
+    if(!w.puertas[name]) w.puertas[name] = {puertas:0, dias:0, pago:0};
+    w.puertas[name].puertas += e.puertas;
+    w.puertas[name].dias += 1;
+    w.puertas[name].pago += e.puertas * config.pago;
+  });
+  gastos.forEach(g=>{
+    const w = wk(g.fecha);
+    w[g.tipo] += g.monto;
+  });
+
+  const weekKeys = Object.keys(weeks).sort();
+  let totalPuertas=0, totalFact=0, totalPagoDestajo=0, totalEspuma=0, totalAportes=0, totalSalario=0, totalViaje=0, totalOtro=0;
+
+  const semanasEl = document.getElementById('semanas');
+  if(weekKeys.length === 0){
+    semanasEl.innerHTML = '<div class="card"><div class="empty">Cargá puertas o gastos para ver el resumen semanal.</div></div>';
+  } else {
+    semanasEl.innerHTML = weekKeys.map(k=>{
+      const w = weeks[k];
+      let wPuertas=0, wPago=0, lines="";
+      Object.keys(w.puertas).forEach(name=>{
+        const p = w.puertas[name];
+        wPuertas += p.puertas; wPago += p.pago;
+        lines += `<div class="line"><span class="l">${name} — ${p.puertas} ptas · ${p.dias} día(s)</span><span class="r">${fmt(p.pago)}</span></div>`;
+      });
+      const fact = wPuertas * config.precio;
+      const gastosSemana = w.espuma + w.aportes + w.salario + w.viaje + w.otro;
+      const margen = fact - wPago - gastosSemana;
+
+      totalPuertas += wPuertas; totalFact += fact; totalPagoDestajo += wPago;
+      totalEspuma += w.espuma; totalAportes += w.aportes; totalSalario += w.salario;
+      totalViaje += w.viaje; totalOtro += w.otro;
+
+      let gastoLines = "";
+      if(w.espuma) gastoLines += `<div class="line"><span class="l">Espuma</span><span class="r">−${fmt(w.espuma)}</span></div>`;
+      if(w.aportes) gastoLines += `<div class="line"><span class="l">Aportes</span><span class="r">−${fmt(w.aportes)}</span></div>`;
+      if(w.salario) gastoLines += `<div class="line"><span class="l">Salarios fijos</span><span class="r">−${fmt(w.salario)}</span></div>`;
+      if(w.viaje) gastoLines += `<div class="line"><span class="l">Viajes supervisión</span><span class="r">−${fmt(w.viaje)}</span></div>`;
+      if(w.otro) gastoLines += `<div class="line"><span class="l">Otros gastos</span><span class="r">−${fmt(w.otro)}</span></div>`;
+
+      return `<div class="weekcard">
+        <div class="weekhead"><span>Semana ${k}</span><span>${wPuertas} puertas</span></div>
+        <div class="weekbody">
+          ${lines}
+          <div class="line"><span class="l">Facturación</span><span class="r">${fmt(fact)}</span></div>
+          ${gastoLines}
+          <div class="margin-line line"><span class="l">Margen Ruben</span><span class="r ${margen>=0?'':'neg'}">${fmt(margen)}</span></div>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  const totalGastos = totalEspuma + totalAportes + totalSalario + totalViaje + totalOtro;
+  const totalMargen = totalFact - totalPagoDestajo - totalGastos;
+  const restantes = Math.max(0, (config.meta||0) - totalPuertas);
+
+  document.getElementById('stat-row').innerHTML = `
+    <div class="stat"><div class="k">Puertas instaladas</div><div class="v">${totalPuertas} <span style="font-size:12px;color:var(--ink-soft)">/ ${config.meta||0}</span></div></div>
+    <div class="stat"><div class="k">Margen acumulado</div><div class="v ${totalMargen>=0?'pos':'neg'}">${fmt(totalMargen)}</div></div>
+    <div class="stat"><div class="k">Faltan por instalar</div><div class="v">${restantes}</div></div>
+  `;
+}
+
+// ---------- tabs ----------
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('btn-add').addEventListener('click', addEntry);
+document.getElementById('btn-add-gasto').addEventListener('click', addGasto);
+document.getElementById('btn-add-worker').addEventListener('click', addWorker);
+document.getElementById('btn-save-config').addEventListener('click', saveConfig);
+
+document.getElementById('btn-export').addEventListener('click', ()=>{
+  const payload = {config, workers, doorEntries, gastos, exportado: new Date().toISOString()};
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `obra-${(config.obra||'proyecto').toLowerCase().replace(/\s+/g,'-')}-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.getElementById('import-file').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  const msg = document.getElementById('import-msg');
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if(data.config) config = {...DEFAULT_CONFIG, ...data.config};
+      if(data.workers) workers = data.workers;
+      if(data.doorEntries) doorEntries = data.doorEntries;
+      if(data.gastos) gastos = data.gastos;
+      hydrateConfigForm();
+      renderWorkerSelects();
+      renderWorkersList();
+      renderRegistro();
+      renderGastosHistory();
+      renderResumen();
+      await persist('config', config);
+      await persist('workers', workers);
+      await persist('doorEntries', doorEntries);
+      await persist('gastos', gastos);
+      msg.style.color = "var(--green)";
+      msg.textContent = `Restaurado ✓ (${doorEntries.length} días, ${gastos.length} gastos, ${workers.length} trabajadores)`;
+    }catch(err){
+      msg.style.color = "var(--brick)";
+      msg.textContent = "Ese archivo no es una copia válida.";
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById('f-fecha').valueAsDate = new Date();
+document.getElementById('g-fecha').valueAsDate = new Date();
+updateGastoFields();
+
+document.getElementById('w-tipo').addEventListener('change', updateWorkerFields);
+function updateWorkerFields(){
+  const tipo = document.getElementById('w-tipo').value;
+  const notas = {
+    destajo: "El pago por puerta se define en Config (tarifa general). No hace falta cargar nada más acá.",
+    fijo: "Estos dos valores son solo de referencia para planificar — el gasto real que se descuenta del margen es el que cargues en la pestaña Gastos.",
+    supervisor: "Estos valores son de referencia y se usan para autocompletar el monto al cargar un \"Viaje de supervisión\" en Gastos — el gasto real sigue siendo el que cargues ahí."
+  };
+  document.getElementById('w-campos-fijo').style.display = tipo==='fijo' ? 'grid' : 'none';
+  document.getElementById('w-campos-supervisor').style.display = tipo==='supervisor' ? 'grid' : 'none';
+  document.getElementById('w-nota').textContent = notas[tipo] || "";
+}
+updateWorkerFields();
+
+// Exponer al scope global porque este script es type="module"
+// y los onclick="..." generados en el HTML necesitan encontrarlas en window.
+window.deleteEntry = deleteEntry;
+window.deleteGasto = deleteGasto;
+window.deleteWorker = deleteWorker;
+
+loadData();
+</script>
+</body>
+</html>

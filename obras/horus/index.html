@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decosol | Horus - Planilla de Obra</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A1A1A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Horus">
+<style>
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Inter','Segoe UI',sans-serif; background:#F7F5F2; }
+  .wrap { max-width:680px; margin:0 auto; padding:24px 16px; }
+  button { font-family: inherit; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .bar-bg { height:5px; background:#333; border-radius:3px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:3px; transition:width .4s; }
+  .bar-bg-sm { height:3px; background:#F0EDE8; border-radius:2px; overflow:hidden; }
+  .bar-fill-sm { height:100%; border-radius:2px; }
+  .apt-card { background:#fff; border-radius:12px; padding:12px 14px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,0.06); border-left:3px solid #7C5C3E; transition:box-shadow .15s; }
+  .apt-card:hover { box-shadow:0 4px 14px rgba(0,0,0,0.12); }
+  .piso-btn { padding:5px 14px; border-radius:20px; border:none; cursor:pointer; font-size:11px; font-weight:700; transition:all .15s; background:#E8E4DF; color:#888; }
+  .piso-btn.active { background:#7C5C3E; color:#fff; }
+  .pago-btn { padding:5px 12px; border-radius:20px; border:none; cursor:pointer; font-size:10px; font-weight:700; flex-shrink:0; transition:all .2s; background:#F0EDE8; color:#888; }
+  .pago-btn.pagado { background:#5A8A6A; color:#fff; }
+  .cobro-btn { padding:5px 12px; border-radius:20px; border:none; cursor:pointer; font-size:10px; font-weight:700; flex-shrink:0; transition:all .2s; background:#2A2A2A; color:#666; }
+  .cobro-btn.cobrado { background:#5A8A6A; color:#fff; }
+</style>
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+<a href="../../index.html" id="rhr-portal-back-link" style="position:fixed;top:10px;left:10px;z-index:2147483647;background:#14181f;color:#fff;font:600 12px/1 -apple-system,system-ui,sans-serif;padding:8px 13px;border-radius:999px;text-decoration:none;box-shadow:0 2px 10px rgba(0,0,0,.3);opacity:.82">&larr; Portal RHR</a>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.error('SW error', err));
+  });
+}
+</script>
+<div id="root"></div>
+<div id="sync-badge" style="position:fixed;bottom:14px;right:14px;background:#1A1A1A;color:#fff;font-size:11px;font-weight:700;padding:7px 12px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,0.25);z-index:999;display:flex;align-items:center;gap:6px;">
+  <span id="sync-dot" style="width:7px;height:7px;border-radius:50%;background:#E07B39;"></span>
+  <span id="sync-text">Conectando...</span>
+</div>
+
+<script>
+const W_COLORS = { W1: "#7C5C3E", W2: "#3E5C4E", W3: "#3E4A5C" };
+
+const COBROS_CLIENTE = [
+  { label: "1er cobro", desc: "Al terminar 1ra etapa", pct: 0.40 },
+  { label: "2do cobro", desc: "Al terminar 2da etapa", pct: 0.40 },
+  { label: "3er cobro", desc: "Al terminar finales",   pct: 0.20 },
+];
+
+const TIPOLOGIAS = {
+  A35: {
+    id: "A35", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 43.08,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["5 módulos bajos", "4 cajones"], monto: 31.37, pct: 64 },
+          { etapa: "2da etapa", tareas: ["3 módulos aéreos"], monto: 4.74, pct: 11 },
+          { etapa: "3ra etapa", tareas: ["Barra", "Torre calefón"], monto: 6.97, pct: 14 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 42.53,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["2 módulos bajos", "2 vistas de ajuste"], monto: 11.48, pct: 24 },
+          { etapa: "2da etapa", tareas: ["2 módulos aéreos", "2 vistas de ajuste"], monto: 5.21, pct: 12 },
+          { etapa: "3ra etapa", tareas: ["Torre calefón", "Aéreo heladera", "3 módulos", "Barra", "2 paneles laterales", "2 zócalos"], monto: 25.84, pct: 53 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "4ta etapa", tareas: ["6 puertas", "Quitar etiquetas", "Limpiar", "Poner tapines"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos (Obra)" },
+      { etapa: "4ta etapa", obra: "⏳ Aberturas (Obra) · Mesadas (Marmolería)" },
+    ],
+  },
+  A36: {
+    id: "A36", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 47.62,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["5 módulos bajos", "3 cajones"], monto: 33.02, pct: 62 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos"], monto: 14.60, pct: 31 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 46.41,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["5 módulos bajos", "2 vistas de ajuste"], monto: 28.86, pct: 54 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos", "1 vista de ajuste"], monto: 17.55, pct: 38 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "3ra etapa", tareas: ["7 puertas", "6 paneles laterales", "3 zócalos", "Quitar etiquetas", "Limpiar", "Poner tapines"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos · Aberturas (Obra) · Mesadas (Marmolería)" },
+    ],
+  },
+  A37: {
+    id: "A37", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 56.52,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "3 cajones"], monto: 33.23, pct: 52 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos"], monto: 13.29, pct: 24 },
+          { etapa: "3ra etapa", tareas: ["Torre calefón", "Barra"], monto: 10.00, pct: 16 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 55.76,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "1 vista de ajuste"], monto: 22.86, pct: 36 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos", "1 vista de ajuste"], monto: 14.62, pct: 26 },
+          { etapa: "3ra etapa", tareas: ["Torre calefón", "Barra"], monto: 18.28, pct: 29 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "4ta etapa", tareas: ["9 puertas", "1 zócalo", "Quitar etiquetas", "Limpiar", "Poner tapines"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos · Aberturas (Obra) · Mesadas (Marmolería)" },
+      { etapa: "4ta etapa", obra: null },
+    ],
+  },
+  A38: {
+    id: "A38", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 64.84,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["6 módulos bajos", "3 cajones"], monto: 42.47, pct: 65 },
+          { etapa: "2da etapa", tareas: ["7 módulos aéreos"], monto: 22.37, pct: 35 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 63.58,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["6 módulos bajos", "2 vistas de ajuste"], monto: 37.85, pct: 60 },
+          { etapa: "2da etapa", tareas: ["7 módulos aéreos", "1 vista de ajuste"], monto: 25.73, pct: 40 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "3ra etapa", tareas: ["10 puertas", "4 paneles laterales", "4 zócalos", "Quitar etiquetas", "Limpiar", "Poner tapines"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos · Aberturas (Obra) · Mesadas (Marmolería)" },
+    ],
+  },
+  A39: {
+    id: "A39", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 44.89,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "3 cajones"], monto: 26.64, pct: 59 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos"], monto: 12.64, pct: 28 },
+          { etapa: "3ra etapa", tareas: ["Barra"], monto: 5.61, pct: 13 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 45.63,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "Módulo lavavajillas", "1 vista de ajuste"], monto: 17.20, pct: 38 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos", "1 vista de ajuste"], monto: 11.23, pct: 25 },
+          { etapa: "3ra etapa", tareas: ["Barra", "Módulo sobre cajonera"], monto: 17.20, pct: 38 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "4ta etapa", tareas: ["7 puertas", "Quitar etiquetas", "Poner tapines", "Limpiar"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos (Obra)" },
+      { etapa: "4ta etapa", obra: "⏳ Aberturas (Obra) · Mesadas (Marmolería)" },
+    ],
+  },
+  A40: {
+    id: "A40", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 45.53,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["6 módulos bajos", "3 cajones"], monto: 30.27, pct: 66 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos"], monto: 15.26, pct: 34 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 44.64,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["6 módulos bajos", "1 vista de ajuste"], monto: 27.07, pct: 61 },
+          { etapa: "2da etapa", tareas: ["5 módulos aéreos", "1 vista de ajuste"], monto: 17.57, pct: 39 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "3ra etapa", tareas: ["7 puertas", "3 paneles laterales", "6 zócalos", "Quitar etiquetas", "Poner tapines", "Limpiar"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos · Aberturas (Obra) · Mesadas (Marmolería)" },
+    ],
+  },
+  A41: {
+    id: "A41", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 43.59,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "3 cajones"], monto: 26.71, pct: 61 },
+          { etapa: "2da etapa", tareas: ["6 módulos aéreos"], monto: 16.88, pct: 39 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 43.07,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "2 vistas de ajuste"], monto: 24.70, pct: 57 },
+          { etapa: "2da etapa", tareas: ["6 módulos aéreos", "2 vistas de ajuste"], monto: 18.37, pct: 43 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "3ra etapa", tareas: ["6 puertas", "3 zócalos", "Quitar etiquetas", "Limpiar", "Poner tapines"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos · Aberturas (Obra) · Mesadas (Marmolería)" },
+    ],
+  },
+  A42: {
+    id: "A42", totalArmado: 260,
+    trabajadores: [
+      { id: "W1", nombre: "Trabajador 1", rol: "Armado", total: 36.02,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "3 cajones"], monto: 22.18, pct: 62 },
+          { etapa: "2da etapa", tareas: ["6 módulos aéreos"], monto: 13.84, pct: 38 },
+        ],
+      },
+      { id: "W2", nombre: "Trabajador 2", rol: "Amurado", total: 35.56,
+        etapas: [
+          { etapa: "1ra etapa", tareas: ["4 módulos bajos", "1 vista de ajuste"], monto: 20.40, pct: 57 },
+          { etapa: "2da etapa", tareas: ["6 módulos aéreos", "1 vista de ajuste"], monto: 15.16, pct: 43 },
+        ],
+      },
+      { id: "W3", nombre: "Trabajador 3", rol: "Finales", total: 7.50, jornal: 30, cocinas_jornal: 4,
+        etapas: [
+          { etapa: "3ra etapa", tareas: ["7 puertas", "1 zócalo", "Quitar etiquetas", "Limpiar", "Poner tapines"], monto: 7.50, pct: 100 },
+        ],
+      },
+    ],
+    cronograma: [
+      { etapa: "1ra etapa", obra: null },
+      { etapa: "2da etapa", obra: null },
+      { etapa: "3ra etapa", obra: "⏳ Pisos · Aberturas (Obra) · Mesadas (Marmolería)" },
+    ],
+  },
+};
+TIPOLOGIAS.A43 = Object.assign({}, TIPOLOGIAS.A36, { id: "A43" });
+TIPOLOGIAS.A44 = Object.assign({}, TIPOLOGIAS.A39, { id: "A44" });
+
+const APARTAMENTOS = [
+  { apt: "101", tipo: "A42" }, { apt: "102", tipo: "A36" }, { apt: "103", tipo: "A43" },
+  { apt: "104", tipo: "A37" }, { apt: "105", tipo: "A38" }, { apt: "106", tipo: "A39" },
+  { apt: "107", tipo: "A44" }, { apt: "108", tipo: "A40" },
+  { apt: "201", tipo: "A42" }, { apt: "202", tipo: "A36" }, { apt: "203", tipo: "A43" },
+  { apt: "204", tipo: "A37" }, { apt: "205", tipo: "A38" }, { apt: "206", tipo: "A39" },
+  { apt: "207", tipo: "A44" }, { apt: "208", tipo: "A40" },
+  { apt: "301", tipo: "A35" }, { apt: "302", tipo: "A36" }, { apt: "303", tipo: "A43" },
+  { apt: "304", tipo: "A37" }, { apt: "305", tipo: "A38" }, { apt: "306", tipo: "A39" },
+  { apt: "307", tipo: "A44" }, { apt: "308", tipo: "A40" }, { apt: "309", tipo: "A41" },
+  { apt: "401", tipo: "A35" }, { apt: "402", tipo: "A36" }, { apt: "403", tipo: "A43" },
+  { apt: "404", tipo: "A37" }, { apt: "405", tipo: "A38" }, { apt: "406", tipo: "A39" },
+  { apt: "407", tipo: "A44" }, { apt: "408", tipo: "A40" }, { apt: "409", tipo: "A41" },
+  { apt: "501", tipo: "A35" }, { apt: "502", tipo: "A36" }, { apt: "503", tipo: "A43" },
+  { apt: "504", tipo: "A37" }, { apt: "505", tipo: "A38" }, { apt: "506", tipo: "A39" },
+  { apt: "507", tipo: "A44" }, { apt: "508", tipo: "A40" }, { apt: "509", tipo: "A41" },
+  { apt: "601", tipo: "A35" }, { apt: "602", tipo: "A36" }, { apt: "603", tipo: "A43" },
+  { apt: "604", tipo: "A37" }, { apt: "605", tipo: "A38" }, { apt: "606", tipo: "A39" },
+  { apt: "607", tipo: "A44" }, { apt: "608", tipo: "A40" }, { apt: "609", tipo: "A41" },
+  { apt: "701", tipo: "A35" }, { apt: "702", tipo: "A36" }, { apt: "703", tipo: "A43" },
+  { apt: "704", tipo: "A37" }, { apt: "705", tipo: "A38" }, { apt: "706", tipo: "A39" },
+  { apt: "707", tipo: "A44" }, { apt: "708", tipo: "A40" }, { apt: "709", tipo: "A41" },
+  { apt: "801", tipo: "A35" }, { apt: "802", tipo: "A36" }, { apt: "803", tipo: "A43" },
+  { apt: "804", tipo: "A37" }, { apt: "805", tipo: "A38" }, { apt: "806", tipo: "A39" },
+  { apt: "807", tipo: "A44" }, { apt: "808", tipo: "A40" }, { apt: "809", tipo: "A41" },
+  { apt: "901", tipo: "A35" }, { apt: "902", tipo: "A36" }, { apt: "903", tipo: "A43" },
+  { apt: "904", tipo: "A37" }, { apt: "905", tipo: "A38" }, { apt: "906", tipo: "A39" },
+];
+
+const PISOS = [...new Set(APARTAMENTOS.map(a => a.apt[0]))];
+
+// ---- state (en memoria, no persiste al recargar) ----
+let selected = null;
+let pagos = {};
+let cobros = {};
+let pisoFiltro = "todos";
+
+// ---- Sincronización Firestore (multi-dispositivo) ----
+const firebaseConfig = {
+  apiKey: "AIzaSyAzaiX9srDslMByaV1y9aVuh2QcKF38N6U",
+  authDomain: "obra-horus.firebaseapp.com",
+  projectId: "obra-horus",
+  storageBucket: "obra-horus.firebasestorage.app",
+  messagingSenderId: "394828933032",
+  appId: "1:394828933032:web:e2e85298e507e8265ddf9d"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+try {
+  db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+} catch (e) {}
+const DB_DOC = db.collection("obras").doc("decosol-horus");
+
+function setSyncBadge(estado) {
+  const dot = document.getElementById("sync-dot");
+  const txt = document.getElementById("sync-text");
+  if (!dot || !txt) return;
+  if (estado === "ok") { dot.style.background = "#5A8A6A"; txt.textContent = "Sincronizado"; }
+  else if (estado === "guardando") { dot.style.background = "#E07B39"; txt.textContent = "Guardando..."; }
+  else if (estado === "error") { dot.style.background = "#C0392B"; txt.textContent = "Sin conexión (local)"; }
+  else { dot.style.background = "#E07B39"; txt.textContent = "Conectando..."; }
+}
+
+DB_DOC.onSnapshot(snap => {
+  const data = snap.data();
+  if (data) {
+    pagos = data.pagos || {};
+    cobros = data.cobros || {};
+    render();
+  }
+  setSyncBadge("ok");
+}, err => {
+  console.error("Error de sincronización:", err);
+  setSyncBadge("error");
+});
+
+function guardarCampo(campo, key, valor) {
+  setSyncBadge("guardando");
+  const update = {};
+  update[campo] = { [key]: valor };
+  update.actualizado = firebase.firestore.FieldValue.serverTimestamp();
+  DB_DOC.set(update, { merge: true })
+    .then(() => setSyncBadge("ok"))
+    .catch(err => { console.error("Error guardando:", err); setSyncBadge("error"); });
+}
+// ---- Fin sincronización ----
+
+function getManoTotal(tip) {
+  return tip.trabajadores.reduce((a, w) => a + w.total, 0);
+}
+function getGanancia(tip) {
+  return tip.totalArmado - getManoTotal(tip);
+}
+function getPagado(tip, apt) {
+  return tip.trabajadores.reduce((acc, w) =>
+    acc + w.etapas.reduce((a, e, i) =>
+      a + (pagos[apt + "-" + w.id + "-" + i] ? e.monto : 0), 0), 0);
+}
+function getCobroPct(apt, i) {
+  const v = cobros[apt + "-cobro-" + i];
+  return typeof v === "number" ? v : 0;
+}
+function getCobradoCliente(tip, apt) {
+  return COBROS_CLIENTE.reduce((a, c, i) =>
+    a + tip.totalArmado * (getCobroPct(apt, i) / 100), 0);
+}
+function fmt(n) { return n.toFixed(2); }
+
+function setCobroPct(apt, i, val) {
+  let v = parseFloat(val);
+  if (isNaN(v)) v = 0;
+  v = Math.max(0, Math.min(100, v));
+  const key = apt + "-cobro-" + i;
+  cobros[key] = v;
+  render();
+  guardarCampo("cobros", key, v);
+}
+function togglePago(apt, wId, i) {
+  const key = apt + "-" + wId + "-" + i;
+  pagos[key] = !pagos[key];
+  render();
+  guardarCampo("pagos", key, pagos[key]);
+}
+function selectApt(apt, tipo) { selected = { apt, tipo }; render(); }
+function goBack() { selected = null; render(); }
+function setPisoFiltro(p) { pisoFiltro = p; render(); }
+
+function renderPlanilla(apt, tipId) {
+  const tip = TIPOLOGIAS[tipId];
+  const totalMano = getManoTotal(tip);
+  const totalPagado = getPagado(tip, apt);
+  const totalCobrado = getCobradoCliente(tip, apt);
+
+  let html = `<button onclick="goBack()" style="background:none;border:none;cursor:pointer;font-size:13px;color:#7C5C3E;font-weight:700;padding:0 0 16px 0;">← Volver</button>`;
+
+  html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;">
+    <div>
+      <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#999;text-transform:uppercase;">Apartamento</div>
+      <div style="font-size:32px;font-weight:800;color:#1A1A1A;line-height:1;">${apt}</div>
+      <div style="font-size:13px;color:#7C5C3E;font-weight:600;margin-top:2px;">Tipología ${tipId}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px;">Total armado</div>
+      <div style="font-size:26px;font-weight:800;color:#1A1A1A;">$${tip.totalArmado.toFixed(2)}</div>
+      <div style="font-size:11px;color:#5A8A6A;font-weight:600;">Ganancia $${getGanancia(tip).toFixed(2)}</div>
+    </div>
+  </div>`;
+
+  html += `<div style="display:flex;gap:8px;margin-bottom:16px;">
+    <div style="flex:1;background:#EDE8E2;border-radius:10px;padding:10px 12px;">
+      <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;">Mano de obra</div>
+      <div style="font-size:16px;font-weight:800;color:#1A1A1A;margin-top:2px;">$${fmt(totalMano)}</div>
+    </div>
+    <div style="flex:1;background:#E2EDE7;border-radius:10px;padding:10px 12px;">
+      <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;">Pagado W</div>
+      <div style="font-size:16px;font-weight:800;color:#1A1A1A;margin-top:2px;">$${fmt(totalPagado)}</div>
+    </div>
+    <div style="flex:1;background:#EDEDE2;border-radius:10px;padding:10px 12px;">
+      <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:1px;">Pendiente W</div>
+      <div style="font-size:16px;font-weight:800;color:#1A1A1A;margin-top:2px;">$${fmt(totalMano - totalPagado)}</div>
+    </div>
+  </div>`;
+
+  html += `<div style="background:#1A1A1A;border-radius:14px;margin-bottom:16px;overflow:hidden;">
+    <div style="padding:12px 16px;border-bottom:1px solid #2A2A2A;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:2px;">Cobro al Cliente</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;margin-top:2px;">Total $${tip.totalArmado.toFixed(2)}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:10px;color:#666;">Cobrado</div>
+        <div style="font-size:18px;font-weight:800;color:${totalCobrado === tip.totalArmado ? "#5A8A6A" : "#E07B39"};">$${fmt(totalCobrado)}</div>
+      </div>
+    </div>`;
+
+  COBROS_CLIENTE.forEach((c, i) => {
+    const pctCobrado = getCobroPct(apt, i);
+    const cobradoTotal = pctCobrado >= 100;
+    const montoCobrado = tip.totalArmado * (pctCobrado / 100);
+    html += `<div style="display:flex;align-items:center;padding:12px 16px;border-bottom:${i < COBROS_CLIENTE.length - 1 ? "1px solid #2A2A2A" : "none"};opacity:${cobradoTotal ? 0.5 : 1};transition:opacity .2s;">
+      <div style="width:82px;flex-shrink:0;">
+        <div style="font-size:10px;font-weight:700;color:#E07B39;text-transform:uppercase;letter-spacing:1px;">${c.label}</div>
+        <div style="font-size:16px;font-weight:800;color:#5A8A6A;margin-top:1px;">$${montoCobrado.toFixed(2)}</div>
+      </div>
+      <div style="flex:1;padding-left:10px;">
+        <div style="font-size:11px;color:#888;">${c.desc}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+        <input type="number" min="0" max="100" step="1" value="${pctCobrado}" onchange="setCobroPct('${apt}',${i},this.value)" style="width:48px;padding:5px 4px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font-size:11px;font-weight:700;text-align:center;">
+        <span style="font-size:10px;color:#888;">%</span>
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  tip.trabajadores.forEach(w => {
+    html += `<div style="background:#fff;border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+      <div style="background:${W_COLORS[w.id]};padding:12px 16px;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div style="font-size:9px;color:rgba(255,255,255,0.6);letter-spacing:2px;text-transform:uppercase;">${w.id} · ${w.rol}</div>
+          <div style="font-size:15px;font-weight:700;color:#fff;margin-top:1px;">${w.nombre}</div>
+          ${w.jornal ? `<div style="font-size:9px;color:rgba(255,255,255,0.65);margin-top:1px;">Jornal $${w.jornal} · ${w.cocinas_jornal} cocinas</div>` : ""}
+        </div>
+        <div style="font-size:20px;font-weight:800;color:#fff;">$${w.total.toFixed(2)}</div>
+      </div>`;
+    w.etapas.forEach((e, i) => {
+      const pagado = !!pagos[apt + "-" + w.id + "-" + i];
+      html += `<div style="display:flex;align-items:center;padding:10px 16px;border-bottom:${i < w.etapas.length - 1 ? "1px solid #F0EDE8" : "none"};opacity:${pagado ? 0.5 : 1};transition:opacity .2s;">
+        <div style="width:82px;flex-shrink:0;">
+          <div style="font-size:9px;font-weight:700;color:${W_COLORS[w.id]};text-transform:uppercase;letter-spacing:1px;">${e.etapa}</div>
+          <div style="font-size:14px;font-weight:800;color:#1A1A1A;margin-top:1px;">$${e.monto.toFixed(2)}</div>
+          <div style="font-size:9px;color:#bbb;">${e.pct}%</div>
+        </div>
+        <div style="flex:1;padding-left:10px;">
+          ${e.tareas.map(t => `<div style="font-size:11px;color:#555;line-height:1.7;">· ${t}</div>`).join("")}
+        </div>
+        <button class="pago-btn ${pagado ? "pagado" : ""}" onclick="togglePago('${apt}','${w.id}',${i})">${pagado ? "✓ Cobrado" : "Pendiente"}</button>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+
+  html += `<div style="background:#fff;border-radius:14px;padding:14px 16px;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+    <div style="font-size:10px;font-weight:700;color:#999;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Cronograma</div>`;
+  tip.cronograma.forEach((item, i) => {
+    html += `<div style="display:flex;gap:10px;margin-bottom:8px;align-items:flex-start;">
+      <div style="width:20px;height:20px;border-radius:50%;background:#F0EDE8;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#7C5C3E;flex-shrink:0;margin-top:1px;">${i + 1}</div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#1A1A1A;">${item.etapa}</div>
+        ${item.obra ? `<div style="font-size:10px;color:#E07B39;margin-top:1px;font-weight:500;">${item.obra}</div>` : ""}
+      </div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  return html;
+}
+
+function renderDashboard() {
+  const totalObra = APARTAMENTOS.reduce((a, ap) => a + TIPOLOGIAS[ap.tipo].totalArmado, 0);
+  const totalGanancia = APARTAMENTOS.reduce((a, ap) => a + getGanancia(TIPOLOGIAS[ap.tipo]), 0);
+  const totalManoObra = APARTAMENTOS.reduce((a, ap) => a + getManoTotal(TIPOLOGIAS[ap.tipo]), 0);
+  const totalPagadoObra = APARTAMENTOS.reduce((a, ap) => a + getPagado(TIPOLOGIAS[ap.tipo], ap.apt), 0);
+  const totalCobradoObra = APARTAMENTOS.reduce((a, ap) => a + getCobradoCliente(TIPOLOGIAS[ap.tipo], ap.apt), 0);
+  const pctMano = Math.round((totalPagadoObra / totalManoObra) * 100);
+  const pctCobro = Math.round((totalCobradoObra / totalObra) * 100);
+
+  const pisosPorGrupo = pisoFiltro === "todos" ? PISOS : [pisoFiltro];
+
+  let html = `<div style="margin-bottom:20px;">
+    <div style="font-size:11px;font-weight:700;letter-spacing:3px;color:#999;text-transform:uppercase;">Manfroi · Obra</div>
+    <div style="font-size:28px;font-weight:800;color:#1A1A1A;margin-top:4px;">Decosol <span style="color:#7C5C3E;">| Horus</span></div>
+    <div style="font-size:13px;color:#888;margin-top:2px;">76 apartamentos · 10 tipologías · 9 pisos</div>
+    <button onclick="exportarPDF()" style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:8px 16px;border-radius:20px;border:none;background:#1A1A1A;color:#fff;font-size:12px;font-weight:700;cursor:pointer;">📄 Exportar informe para cliente (PDF)</button>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+      <button onclick="exportarInformeTrabajador('W1')" style="padding:7px 14px;border-radius:20px;border:none;background:${W_COLORS.W1};color:#fff;font-size:11px;font-weight:700;cursor:pointer;">📋 Informe Trabajador 1</button>
+      <button onclick="exportarInformeTrabajador('W2')" style="padding:7px 14px;border-radius:20px;border:none;background:${W_COLORS.W2};color:#fff;font-size:11px;font-weight:700;cursor:pointer;">📋 Informe Trabajador 2</button>
+      <button onclick="exportarInformeTrabajador('W3')" style="padding:7px 14px;border-radius:20px;border:none;background:${W_COLORS.W3};color:#fff;font-size:11px;font-weight:700;cursor:pointer;">📋 Informe Trabajador 3</button>
+    </div>
+  </div>`;
+
+  html += `<div style="background:#1A1A1A;border-radius:16px;padding:20px;margin-bottom:20px;color:#fff;">
+    <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:2px;margin-bottom:14px;">Resumen de la obra</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+      <div><div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;">Total armado</div><div style="font-size:22px;font-weight:800;color:#fff;margin-top:2px;">$${totalObra.toFixed(0)}</div></div>
+      <div><div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;">Ganancia estimada</div><div style="font-size:22px;font-weight:800;color:#5A8A6A;margin-top:2px;">$${totalGanancia.toFixed(0)}</div></div>
+      <div><div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;">Cobrado al cliente</div><div style="font-size:22px;font-weight:800;color:#E07B39;margin-top:2px;">$${totalCobradoObra.toFixed(0)}</div></div>
+      <div><div style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:1px;">Mano de obra pagada</div><div style="font-size:22px;font-weight:800;color:#fff;margin-top:2px;">$${totalPagadoObra.toFixed(0)}</div></div>
+    </div>
+    <div style="margin-bottom:8px;">
+      <div style="font-size:9px;color:#555;margin-bottom:4px;display:flex;justify-content:space-between;"><span>Cobros al cliente</span><span style="color:#E07B39;font-weight:700;">${pctCobro}%</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pctCobro}%;background:#E07B39;"></div></div>
+    </div>
+    <div>
+      <div style="font-size:9px;color:#555;margin-bottom:4px;display:flex;justify-content:space-between;"><span>Pagos a trabajadores</span><span style="color:#7C5C3E;font-weight:700;">${pctMano}%</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pctMano}%;background:#7C5C3E;"></div></div>
+    </div>
+  </div>`;
+
+  html += `<div style="display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;">`;
+  ["todos", ...PISOS].forEach(p => {
+    html += `<button class="piso-btn ${pisoFiltro === p ? "active" : ""}" onclick="setPisoFiltro('${p}')">${p === "todos" ? "Todos" : "Piso " + p}</button>`;
+  });
+  html += `</div>`;
+
+  pisosPorGrupo.forEach(piso => {
+    const apts = APARTAMENTOS.filter(a => a.apt[0] === piso);
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:11px;font-weight:700;color:#999;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Piso ${piso}</div>
+      <div class="grid2">`;
+    apts.forEach(({ apt, tipo }) => {
+      const tip = TIPOLOGIAS[tipo];
+      const mano = getManoTotal(tip);
+      const pagado = getPagado(tip, apt);
+      const cobrado = getCobradoCliente(tip, apt);
+      const pctM = Math.round((pagado / mano) * 100);
+      const pctC = Math.round((cobrado / tip.totalArmado) * 100);
+      html += `<div class="apt-card" onclick="selectApt('${apt}','${tipo}')">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div style="font-size:18px;font-weight:800;color:#1A1A1A;">${apt}</div>
+            <div style="font-size:10px;color:#7C5C3E;font-weight:600;">${tipo}</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:14px;font-weight:800;color:#1A1A1A;">$${tip.totalArmado}</div>
+            <div style="font-size:9px;color:#5A8A6A;">Gan. $${getGanancia(tip).toFixed(2)}</div>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="font-size:8px;color:#E07B39;">Cobro cliente ${pctC}%</span></div>
+            <div class="bar-bg-sm"><div class="bar-fill-sm" style="width:${pctC}%;background:#E07B39;"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="font-size:8px;color:#7C5C3E;">Trabajadores ${pctM}%</span></div>
+            <div class="bar-bg-sm"><div class="bar-fill-sm" style="width:${pctM}%;background:#7C5C3E;"></div></div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  });
+
+  html += `<div style="text-align:center;font-size:10px;color:#ccc;margin-top:8px;padding-bottom:24px;">RV03 · Decosol | Horus · 76 apartamentos</div>`;
+
+  return html;
+}
+
+function render() {
+  const root = document.getElementById("root");
+  let inner;
+  if (selected) {
+    inner = renderPlanilla(selected.apt, selected.tipo);
+  } else {
+    inner = renderDashboard();
+  }
+  root.innerHTML = `<div class="wrap">${inner}</div>`;
+}
+
+function exportarPDF() {
+  const totalObra = APARTAMENTOS.reduce((a, ap) => a + TIPOLOGIAS[ap.tipo].totalArmado, 0);
+  const totalCobradoObra = APARTAMENTOS.reduce((a, ap) => a + getCobradoCliente(TIPOLOGIAS[ap.tipo], ap.apt), 0);
+  const fecha = new Date().toLocaleDateString("es-UY", { year: "numeric", month: "long", day: "numeric" });
+
+  let filasHtml = "";
+  PISOS.forEach(piso => {
+    filasHtml += `<div style="margin-bottom:16px;"><div style="font-size:12px;font-weight:700;margin-bottom:6px;background:#F0EDE8;padding:4px 8px;">Piso ${piso}</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="border-bottom:1px solid #ccc;text-align:left;"><th style="padding:4px 6px;">Apto</th><th style="padding:4px 6px;">Tipología</th><th style="padding:4px 6px;text-align:right;">Total</th><th style="padding:4px 6px;text-align:right;">Cobrado</th><th style="padding:4px 6px;text-align:right;">Pendiente</th><th style="padding:4px 6px;">Etapas cobradas</th></tr></thead><tbody>`;
+    APARTAMENTOS.filter(a => a.apt[0] === piso).forEach(({ apt, tipo }) => {
+      const tip = TIPOLOGIAS[tipo];
+      const cobrado = getCobradoCliente(tip, apt);
+      const etapasCobradas = COBROS_CLIENTE
+        .map((c, i) => getCobroPct(apt, i) > 0 ? c.label + " (" + getCobroPct(apt, i) + "%)" : null)
+        .filter(Boolean);
+      const etapasTexto = etapasCobradas.length ? etapasCobradas.join(", ") : "—";
+      filasHtml += `<tr style="border-bottom:1px solid #eee;"><td style="padding:4px 6px;">${apt}</td><td style="padding:4px 6px;">${tipo}</td><td style="padding:4px 6px;text-align:right;">$${tip.totalArmado.toFixed(0)}</td><td style="padding:4px 6px;text-align:right;">$${cobrado.toFixed(0)}</td><td style="padding:4px 6px;text-align:right;">$${(tip.totalArmado - cobrado).toFixed(0)}</td><td style="padding:4px 6px;color:${etapasCobradas.length ? "#5A8A6A" : "#bbb"};">${etapasTexto}</td></tr>`;
+    });
+    filasHtml += `</tbody></table></div>`;
+  });
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Informe de Cobros - Decosol | Horus</title>
+    <style>
+      body { font-family: 'Inter','Segoe UI',sans-serif; color:#1A1A1A; padding:24px; margin:0; }
+      @media print { @page { margin: 16mm; } }
+    </style></head>
+    <body>
+      <div style="text-align:center;margin-bottom:24px;border-bottom:2px solid #1A1A1A;padding-bottom:12px;">
+        <div style="font-size:22px;font-weight:800;">Decosol | Horus</div>
+        <div style="font-size:12px;color:#666;margin-top:2px;">Informe de Cobros al Cliente</div>
+        <div style="font-size:11px;color:#999;margin-top:2px;">Emitido el ${fecha}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr>
+          <td style="width:33%;text-align:center;padding:12px;background:#F0EDE8;border-radius:8px;">
+            <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px;">Total a cobrar (76 cocinas)</div>
+            <div style="font-size:22px;font-weight:800;color:#1A1A1A;margin-top:4px;">$${totalObra.toFixed(0)}</div>
+          </td>
+          <td style="width:4%;"></td>
+          <td style="width:33%;text-align:center;padding:12px;background:#E2EDE7;border-radius:8px;">
+            <div style="font-size:10px;color:#5A8A6A;text-transform:uppercase;letter-spacing:1px;">Total cobrado</div>
+            <div style="font-size:22px;font-weight:800;color:#5A8A6A;margin-top:4px;">$${totalCobradoObra.toFixed(0)}</div>
+          </td>
+          <td style="width:4%;"></td>
+          <td style="width:33%;text-align:center;padding:12px;background:#FBEADD;border-radius:8px;">
+            <div style="font-size:10px;color:#E07B39;text-transform:uppercase;letter-spacing:1px;">Total pendiente</div>
+            <div style="font-size:22px;font-weight:800;color:#E07B39;margin-top:4px;">$${(totalObra - totalCobradoObra).toFixed(0)}</div>
+          </td>
+        </tr>
+      </table>
+      <div style="font-size:12px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;">Detalle por apartamento</div>
+      ${filasHtml}
+      <table style="width:100%;border-collapse:collapse;margin-top:8px;border-top:2px solid #1A1A1A;">
+        <tr>
+          <td style="padding:10px 6px;font-size:13px;font-weight:700;">TOTAL GENERAL (76 cocinas)</td>
+          <td style="padding:10px 6px;font-size:13px;font-weight:800;text-align:right;">$${totalObra.toFixed(0)}</td>
+          <td style="padding:10px 6px;font-size:13px;font-weight:800;text-align:right;color:#5A8A6A;">$${totalCobradoObra.toFixed(0)}</td>
+          <td style="padding:10px 6px;font-size:13px;font-weight:800;text-align:right;color:#E07B39;">$${(totalObra - totalCobradoObra).toFixed(0)}</td>
+        </tr>
+      </table>
+      <script>window.onload = function(){ window.print(); };<\/script>
+    </body></html>`;
+
+  const ventana = window.open("", "_blank");
+  if (!ventana) {
+    alert("El navegador bloqueó la ventana emergente. Habilitá los pop-ups para este sitio y volvé a intentar.");
+    return;
+  }
+  ventana.document.open();
+  ventana.document.write(html);
+  ventana.document.close();
+}
+
+function exportarInformeTrabajador(workerId) {
+  const rolRef = TIPOLOGIAS.A35.trabajadores.find(w => w.id === workerId);
+  const rol = rolRef ? rolRef.rol : "";
+  const fecha = new Date().toLocaleDateString("es-UY", { year: "numeric", month: "long", day: "numeric" });
+
+  let totalGeneral = 0;
+  let totalPagado = 0;
+  let filasHtml = "";
+
+  PISOS.forEach(piso => {
+    const apts = APARTAMENTOS.filter(a => a.apt[0] === piso);
+    let filasPiso = "";
+    apts.forEach(({ apt, tipo }) => {
+      const tip = TIPOLOGIAS[tipo];
+      const w = tip.trabajadores.find(t => t.id === workerId);
+      if (!w) return;
+      const pagadoApt = w.etapas.reduce((a, e, i) => a + (pagos[apt + "-" + w.id + "-" + i] ? e.monto : 0), 0);
+      totalGeneral += w.total;
+      totalPagado += pagadoApt;
+      const etapasPagadas = w.etapas
+        .map((e, i) => pagos[apt + "-" + w.id + "-" + i] ? e.etapa : null)
+        .filter(Boolean);
+      const etapasTexto = etapasPagadas.length ? etapasPagadas.join(", ") : "—";
+      filasPiso += `<tr style="border-bottom:1px solid #eee;"><td style="padding:4px 6px;">${apt}</td><td style="padding:4px 6px;">${tipo}</td><td style="padding:4px 6px;text-align:right;">$${w.total.toFixed(2)}</td><td style="padding:4px 6px;text-align:right;">$${pagadoApt.toFixed(2)}</td><td style="padding:4px 6px;text-align:right;">$${(w.total - pagadoApt).toFixed(2)}</td><td style="padding:4px 6px;color:${etapasPagadas.length ? "#5A8A6A" : "#bbb"};">${etapasTexto}</td></tr>`;
+    });
+    if (filasPiso) {
+      filasHtml += `<div style="margin-bottom:16px;"><div style="font-size:12px;font-weight:700;margin-bottom:6px;background:#F0EDE8;padding:4px 8px;">Piso ${piso}</div><table style="width:100%;border-collapse:collapse;font-size:11px;"><thead><tr style="border-bottom:1px solid #ccc;text-align:left;"><th style="padding:4px 6px;">Apto</th><th style="padding:4px 6px;">Tipología</th><th style="padding:4px 6px;text-align:right;">Total</th><th style="padding:4px 6px;text-align:right;">Pagado</th><th style="padding:4px 6px;text-align:right;">Pendiente</th><th style="padding:4px 6px;">Etapas pagadas</th></tr></thead><tbody>${filasPiso}</tbody></table></div>`;
+    }
+  });
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Informe ${workerId} - Decosol | Horus</title>
+    <style>
+      body { font-family: 'Inter','Segoe UI',sans-serif; color:#1A1A1A; padding:24px; margin:0; }
+      @media print { @page { margin: 16mm; } }
+    </style></head>
+    <body>
+      <div style="text-align:center;margin-bottom:24px;border-bottom:2px solid #1A1A1A;padding-bottom:12px;">
+        <div style="font-size:22px;font-weight:800;">Decosol | Horus</div>
+        <div style="font-size:12px;color:#666;margin-top:2px;">Informe de Pagos — ${workerId} (${rol})</div>
+        <div style="font-size:11px;color:#999;margin-top:2px;">Emitido el ${fecha}</div>
+      </div>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+        <tr>
+          <td style="width:33%;text-align:center;padding:12px;background:#F0EDE8;border-radius:8px;">
+            <div style="font-size:10px;color:#666;text-transform:uppercase;letter-spacing:1px;">Total a pagar</div>
+            <div style="font-size:22px;font-weight:800;color:#1A1A1A;margin-top:4px;">$${totalGeneral.toFixed(2)}</div>
+          </td>
+          <td style="width:4%;"></td>
+          <td style="width:33%;text-align:center;padding:12px;background:#E2EDE7;border-radius:8px;">
+            <div style="font-size:10px;color:#5A8A6A;text-transform:uppercase;letter-spacing:1px;">Total pagado</div>
+            <div style="font-size:22px;font-weight:800;color:#5A8A6A;margin-top:4px;">$${totalPagado.toFixed(2)}</div>
+          </td>
+          <td style="width:4%;"></td>
+          <td style="width:33%;text-align:center;padding:12px;background:#FBEADD;border-radius:8px;">
+            <div style="font-size:10px;color:#E07B39;text-transform:uppercase;letter-spacing:1px;">Total pendiente</div>
+            <div style="font-size:22px;font-weight:800;color:#E07B39;margin-top:4px;">$${(totalGeneral - totalPagado).toFixed(2)}</div>
+          </td>
+        </tr>
+      </table>
+      <div style="font-size:12px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px;">Detalle por apartamento</div>
+      ${filasHtml}
+      <table style="width:100%;border-collapse:collapse;margin-top:8px;border-top:2px solid #1A1A1A;">
+        <tr>
+          <td style="padding:10px 6px;font-size:13px;font-weight:700;">TOTAL GENERAL</td>
+          <td style="padding:10px 6px;font-size:13px;font-weight:800;text-align:right;">$${totalGeneral.toFixed(2)}</td>
+          <td style="padding:10px 6px;font-size:13px;font-weight:800;text-align:right;color:#5A8A6A;">$${totalPagado.toFixed(2)}</td>
+          <td style="padding:10px 6px;font-size:13px;font-weight:800;text-align:right;color:#E07B39;">$${(totalGeneral - totalPagado).toFixed(2)}</td>
+        </tr>
+      </table>
+      <script>window.onload = function(){ window.print(); };<\/script>
+    </body></html>`;
+
+  const ventana = window.open("", "_blank");
+  if (!ventana) {
+    alert("El navegador bloqueó la ventana emergente. Habilitá los pop-ups para este sitio y volvé a intentar.");
+    return;
+  }
+  ventana.document.open();
+  ventana.document.write(html);
+  ventana.document.close();
+}
+
+render();
+</script>
+</body>
+</html>
